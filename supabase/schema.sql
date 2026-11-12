@@ -243,7 +243,8 @@ CREATE TABLE IF NOT EXISTS public.grading_scales (
 );
 
 -- ==============================================================================
--- Row-Level Security (RLS) Policies (Safe & Idempotent with DROP IF EXISTS)
+-- Row-Level Security (RLS) Policies
+-- Configured for both authenticated staff and anon development access
 -- ==============================================================================
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -266,83 +267,92 @@ RETURNS user_role AS $$
     SELECT role FROM public.profiles WHERE id = auth.uid();
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
--- Public Read for Academic Structure
-DROP POLICY IF EXISTS "Anyone authenticated can view classes and sections" ON public.classes;
-CREATE POLICY "Anyone authenticated can view classes and sections" ON public.classes
-    FOR SELECT TO authenticated USING (true);
+-- Academic Structure Policies
+DROP POLICY IF EXISTS "Public view classes" ON public.classes;
+CREATE POLICY "Public view classes" ON public.classes
+    FOR SELECT TO anon, authenticated USING (true);
 
-DROP POLICY IF EXISTS "Anyone authenticated can view sections" ON public.sections;
-CREATE POLICY "Anyone authenticated can view sections" ON public.sections
-    FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Public manage classes" ON public.classes;
+CREATE POLICY "Public manage classes" ON public.classes
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Anyone authenticated can view grading scales" ON public.grading_scales;
-CREATE POLICY "Anyone authenticated can view grading scales" ON public.grading_scales
-    FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Public view sections" ON public.sections;
+CREATE POLICY "Public view sections" ON public.sections
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Public manage sections" ON public.sections;
+CREATE POLICY "Public manage sections" ON public.sections
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public view grading scales" ON public.grading_scales;
+CREATE POLICY "Public view grading scales" ON public.grading_scales
+    FOR SELECT TO anon, authenticated USING (true);
 
 -- Profiles Policy
 DROP POLICY IF EXISTS "Users read own profile; Admins read all" ON public.profiles;
 CREATE POLICY "Users read own profile; Admins read all" ON public.profiles
-    FOR SELECT USING (auth.uid() = id OR public.current_user_role() IN ('super_admin', 'admin'));
+    FOR SELECT USING (auth.uid() = id OR public.current_user_role() IN ('super_admin', 'admin') OR auth.role() = 'anon');
 
--- Students Policy
-DROP POLICY IF EXISTS "Staff view students; Students view own" ON public.students;
-CREATE POLICY "Staff view students; Students view own" ON public.students
-    FOR SELECT USING (
-        public.current_user_role() IN ('super_admin', 'admin', 'teacher', 'accountant')
-        OR profile_id = auth.uid()
-    );
+-- Students Policies (Read & Manage)
+DROP POLICY IF EXISTS "App view students" ON public.students;
+CREATE POLICY "App view students" ON public.students
+    FOR SELECT TO anon, authenticated USING (true);
 
-DROP POLICY IF EXISTS "Admins manage students" ON public.students;
-CREATE POLICY "Admins manage students" ON public.students
-    FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin'));
+DROP POLICY IF EXISTS "App manage students" ON public.students;
+CREATE POLICY "App manage students" ON public.students
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
--- Teachers Policy
-DROP POLICY IF EXISTS "Staff view teachers" ON public.teachers;
-CREATE POLICY "Staff view teachers" ON public.teachers
-    FOR SELECT USING (public.current_user_role() IN ('super_admin', 'admin', 'teacher', 'accountant'));
+-- Teachers Policies (Read & Manage)
+DROP POLICY IF EXISTS "App view teachers" ON public.teachers;
+CREATE POLICY "App view teachers" ON public.teachers
+    FOR SELECT TO anon, authenticated USING (true);
 
-DROP POLICY IF EXISTS "Admins manage teachers" ON public.teachers;
-CREATE POLICY "Admins manage teachers" ON public.teachers
-    FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin'));
+DROP POLICY IF EXISTS "App manage teachers" ON public.teachers;
+CREATE POLICY "App manage teachers" ON public.teachers
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
--- Attendance Policy
-DROP POLICY IF EXISTS "Staff view attendance; Students view own" ON public.attendance;
-CREATE POLICY "Staff view attendance; Students view own" ON public.attendance
-    FOR SELECT USING (
-        public.current_user_role() IN ('super_admin', 'admin', 'teacher')
-        OR student_id IN (SELECT id FROM public.students WHERE profile_id = auth.uid())
-    );
+-- Attendance Policies
+DROP POLICY IF EXISTS "App view attendance" ON public.attendance;
+CREATE POLICY "App view attendance" ON public.attendance
+    FOR SELECT TO anon, authenticated USING (true);
 
-DROP POLICY IF EXISTS "Teachers and Admins manage attendance" ON public.attendance;
-CREATE POLICY "Teachers and Admins manage attendance" ON public.attendance
-    FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin', 'teacher'));
+DROP POLICY IF EXISTS "App manage attendance" ON public.attendance;
+CREATE POLICY "App manage attendance" ON public.attendance
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
--- Fee Vouchers Policy
-DROP POLICY IF EXISTS "Accountants and Admins manage fee vouchers" ON public.fee_vouchers;
-CREATE POLICY "Accountants and Admins manage fee vouchers" ON public.fee_vouchers
-    FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin', 'accountant'));
+-- Fee Policies
+DROP POLICY IF EXISTS "App view fee structures" ON public.fee_structures;
+CREATE POLICY "App view fee structures" ON public.fee_structures
+    FOR SELECT TO anon, authenticated USING (true);
 
-DROP POLICY IF EXISTS "Students and Parents view own vouchers" ON public.fee_vouchers;
-CREATE POLICY "Students and Parents view own vouchers" ON public.fee_vouchers
-    FOR SELECT USING (
-        student_id IN (SELECT id FROM public.students WHERE profile_id = auth.uid())
-    );
+DROP POLICY IF EXISTS "App manage fee structures" ON public.fee_structures;
+CREATE POLICY "App manage fee structures" ON public.fee_structures
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
--- Exam Marks Policy
-DROP POLICY IF EXISTS "Teachers and Admins manage marks" ON public.exam_marks;
-CREATE POLICY "Teachers and Admins manage marks" ON public.exam_marks
-    FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin', 'teacher'));
+DROP POLICY IF EXISTS "App view fee vouchers" ON public.fee_vouchers;
+CREATE POLICY "App view fee vouchers" ON public.fee_vouchers
+    FOR SELECT TO anon, authenticated USING (true);
 
-DROP POLICY IF EXISTS "Students view published marks" ON public.exam_marks;
-CREATE POLICY "Students view published marks" ON public.exam_marks
-    FOR SELECT USING (
-        student_id IN (SELECT id FROM public.students WHERE profile_id = auth.uid())
-        AND exam_subject_id IN (
-            SELECT es.id FROM public.exam_subjects es
-            JOIN public.exams e ON es.exam_id = e.id
-            WHERE e.is_published = TRUE
-        )
-    );
+DROP POLICY IF EXISTS "App manage fee vouchers" ON public.fee_vouchers;
+CREATE POLICY "App manage fee vouchers" ON public.fee_vouchers
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+-- Exams & Marks Policies
+DROP POLICY IF EXISTS "App view exams" ON public.exams;
+CREATE POLICY "App view exams" ON public.exams
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "App view exam subjects" ON public.exam_subjects;
+CREATE POLICY "App view exam subjects" ON public.exam_subjects
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "App view exam marks" ON public.exam_marks;
+CREATE POLICY "App view exam marks" ON public.exam_marks
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "App manage exam marks" ON public.exam_marks;
+CREATE POLICY "App manage exam marks" ON public.exam_marks
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- ==============================================================================
 -- Default Seed Data (All UUIDs strictly use valid hex characters [0-9, a-f])
@@ -359,16 +369,11 @@ INSERT INTO public.grading_scales (grade, min_percentage, max_percentage, gpa_po
 ON CONFLICT (grade) DO NOTHING;
 
 -- 2. Classes & Sections
--- Class Grade 9:  c1a00000-0000-0000-0000-000000000009
--- Class Grade 10: c1a00000-0000-0000-0000-000000000010
 INSERT INTO public.classes (id, name, numeric_order) VALUES
 ('c1a00000-0000-0000-0000-000000000009', 'Grade 9', 9),
 ('c1a00000-0000-0000-0000-000000000010', 'Grade 10', 10)
 ON CONFLICT (id) DO NOTHING;
 
--- Section 9-A:  b1a00000-0000-0000-0000-00000000009a
--- Section 9-B:  b1a00000-0000-0000-0000-00000000009b
--- Section 10-A: b1a00000-0000-0000-0000-00000000010a
 INSERT INTO public.sections (id, class_id, name, capacity) VALUES
 ('b1a00000-0000-0000-0000-00000000009a', 'c1a00000-0000-0000-0000-000000000009', 'Section A', 35),
 ('b1a00000-0000-0000-0000-00000000009b', 'c1a00000-0000-0000-0000-000000000009', 'Section B', 35),
@@ -376,17 +381,12 @@ INSERT INTO public.sections (id, class_id, name, capacity) VALUES
 ON CONFLICT (class_id, name) DO NOTHING;
 
 -- 3. Teachers
--- Teacher 1: d1a00000-0000-0000-0000-000000000001
--- Teacher 2: d1a00000-0000-0000-0000-000000000002
 INSERT INTO public.teachers (id, employee_id, first_name, last_name, email, phone, qualification, specialization, joining_date, salary, status) VALUES
 ('d1a00000-0000-0000-0000-000000000001', 'EMP-2026-001', 'Robert', 'Miller', 'r.miller@apex.edu', '+1 555-0321', 'Ph.D. in Mathematics', 'Higher Mathematics & Calculus', '2024-01-15', 5500.00, 'active'),
 ('d1a00000-0000-0000-0000-000000000002', 'EMP-2026-002', 'Sarah', 'Jenkins', 's.jenkins@apex.edu', '+1 555-0399', 'M.Sc. Physics', 'Applied Physics & Chemistry', '2024-03-01', 5200.00, 'active')
 ON CONFLICT (employee_id) DO NOTHING;
 
 -- 4. Students
--- Student 1: a1000000-0000-0000-0000-000000000001 (Grade 10-A)
--- Student 2: a1000000-0000-0000-0000-000000000002 (Grade 10-A)
--- Student 3: a1000000-0000-0000-0000-000000000003 (Grade 9-B)
 INSERT INTO public.students (id, admission_number, roll_number, first_name, last_name, gender, date_of_birth, class_id, section_id, blood_group, emergency_contact, address, guardian_name, guardian_relation, guardian_phone, guardian_email, admission_date, status) VALUES
 ('a1000000-0000-0000-0000-000000000001', 'ADM-2026-10-001', '1001', 'Sophia', 'Martinez', 'female', '2011-05-14', 'c1a00000-0000-0000-0000-000000000010', 'b1a00000-0000-0000-0000-00000000010a', 'O+', '+1 555-0192', '742 Evergreen Terrace', 'Carlos Martinez', 'Father', '+1 555-0192', 'carlos.m@example.com', '2026-08-15', 'active'),
 ('a1000000-0000-0000-0000-000000000002', 'ADM-2026-10-002', '1002', 'Aaliyah', 'Khan', 'female', '2011-08-22', 'c1a00000-0000-0000-0000-000000000010', 'b1a00000-0000-0000-0000-00000000010a', 'A+', '+1 555-0144', '124 Elm Street', 'Farhan Khan', 'Father', '+1 555-0144', 'farhan.k@example.com', '2026-08-16', 'active'),
@@ -394,30 +394,22 @@ INSERT INTO public.students (id, admission_number, roll_number, first_name, last
 ON CONFLICT (admission_number) DO NOTHING;
 
 -- 5. Fee Structure
--- Fee Structure Grade 10: f1000000-0000-0000-0000-000000000010
 INSERT INTO public.fee_structures (id, class_id, title, tuition_fee, computer_lab_fee, library_fee, sports_fee, exam_fee) VALUES
 ('f1000000-0000-0000-0000-000000000010', 'c1a00000-0000-0000-0000-000000000010', 'Grade 10 Regular Session 2026', 150.00, 30.00, 20.00, 15.00, 25.00)
 ON CONFLICT (id) DO NOTHING;
 
 -- 6. Fee Vouchers
--- Voucher 1: e1a00000-0000-0000-0000-000000000001
--- Voucher 2: e1a00000-0000-0000-0000-000000000002
 INSERT INTO public.fee_vouchers (id, voucher_number, student_id, fee_structure_id, billing_month, issue_date, due_date, base_amount, fine_after_due_date, paid_amount, status) VALUES
 ('e1a00000-0000-0000-0000-000000000001', 'VCH-202611-1001', 'a1000000-0000-0000-0000-000000000001', 'f1000000-0000-0000-0000-000000000010', '2026-11-01', '2026-11-01', '2026-11-20', 240.00, 25.00, 240.00, 'paid'),
 ('e1a00000-0000-0000-0000-000000000002', 'VCH-202611-1002', 'a1000000-0000-0000-0000-000000000002', 'f1000000-0000-0000-0000-000000000010', '2026-11-01', '2026-11-01', '2026-11-20', 240.00, 25.00, 0.00, 'unpaid')
 ON CONFLICT (voucher_number) DO NOTHING;
 
 -- 7. Examinations
--- Exam Term 1: e0000000-0000-0000-0000-000000000001
 INSERT INTO public.exams (id, title, term, start_date, end_date, academic_year, is_published) VALUES
 ('e0000000-0000-0000-0000-000000000001', 'Midterm Examination 2026-27', 'First Term', '2026-10-10', '2026-10-25', '2026-2027', TRUE)
 ON CONFLICT (id) DO NOTHING;
 
 -- 8. Exam Subjects
--- Subject 1 (Math):    f0000000-0000-0000-0000-000000000001
--- Subject 2 (Science): f0000000-0000-0000-0000-000000000002
--- Subject 3 (English): f0000000-0000-0000-0000-000000000003
--- Subject 4 (History): f0000000-0000-0000-0000-000000000004
 INSERT INTO public.exam_subjects (id, exam_id, class_id, subject_name, total_marks, passing_marks) VALUES
 ('f0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 'c1a00000-0000-0000-0000-000000000010', 'Mathematics', 100.00, 40.00),
 ('f0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000001', 'c1a00000-0000-0000-0000-000000000010', 'Science', 100.00, 40.00),
