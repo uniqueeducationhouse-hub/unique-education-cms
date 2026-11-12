@@ -97,6 +97,11 @@ export async function getClassesAndSections(): Promise<{
 
 export async function createStudent(input: CreateStudentInput): Promise<{ success: boolean; error?: string }> {
   try {
+    // Guard: reject empty UUID strings before hitting Postgres
+    if (!input.class_id || !input.section_id) {
+      return { success: false, error: 'Class and section are required. Please ensure classes are configured in Supabase.' };
+    }
+
     const supabase = await createClient();
     const { error } = await supabase.from('students').insert({
       admission_number: input.admission_number,
@@ -156,6 +161,53 @@ export async function createTeacher(input: CreateTeacherInput): Promise<{ succes
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to create teacher';
     return { success: false, error: message };
+  }
+}
+
+export async function createClass(
+  name: string,
+  numeric_order: number
+): Promise<{ success: boolean; classId?: string; error?: string }> {
+  try {
+    if (!name.trim()) return { success: false, error: 'Class name is required.' };
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('classes')
+      .insert({ name: name.trim(), numeric_order })
+      .select('id')
+      .single();
+
+    if (error) return { success: false, error: error.message };
+
+    // Auto-create Section A & B
+    if (data?.id) {
+      await supabase.from('sections').insert([
+        { class_id: data.id, name: 'Section A', capacity: 40 },
+        { class_id: data.id, name: 'Section B', capacity: 40 },
+      ]);
+    }
+
+    revalidatePath('/admissions');
+    return { success: true, classId: data?.id };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'Failed to create class' };
+  }
+}
+
+export async function createSection(
+  class_id: string,
+  name: string,
+  capacity: number = 40
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!class_id || !name.trim()) return { success: false, error: 'Class and section name are required.' };
+    const supabase = await createClient();
+    const { error } = await supabase.from('sections').insert({ class_id, name: name.trim(), capacity });
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admissions');
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'Failed to create section' };
   }
 }
 

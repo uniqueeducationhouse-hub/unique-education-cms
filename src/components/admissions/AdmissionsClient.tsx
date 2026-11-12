@@ -13,10 +13,12 @@ import {
   GraduationCap,
   Database,
   RefreshCw,
+  PlusCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { NewStudentModal } from '@/components/admissions/NewStudentModal';
 import { NewTeacherModal } from '@/components/admissions/NewTeacherModal';
+import { AddClassModal } from '@/components/admissions/AddClassModal';
 import type { Student, Teacher, SchoolClass, Section } from '@/types/database.types';
 
 interface AdmissionsClientProps {
@@ -38,6 +40,7 @@ export function AdmissionsClient({
   const [selectedClassFilter, setSelectedClassFilter] = useState('all');
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
+  const [isAddClassModalOpen, setIsAddClassModalOpen] = useState(false);
 
   // Filter students
   const filteredStudents = initialStudents.filter((student) => {
@@ -90,6 +93,15 @@ export function AdmissionsClient({
             title="Refresh from Supabase"
           >
             <RefreshCw className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsAddClassModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold rounded-lg transition"
+            title="Add new class / section"
+          >
+            <PlusCircle className="h-4 w-4 text-indigo-500" />
+            Add Class
           </button>
           <button
             type="button"
@@ -329,12 +341,19 @@ export function AdmissionsClient({
         onClose={() => setIsStudentModalOpen(false)}
         classes={classes}
         onSuccess={() => router.refresh()}
+        onAddClass={() => setIsAddClassModalOpen(true)}
       />
 
       <NewTeacherModal
         isOpen={isTeacherModalOpen}
         onClose={() => setIsTeacherModalOpen(false)}
         onSuccess={() => router.refresh()}
+      />
+
+      <AddClassModal
+        isOpen={isAddClassModalOpen}
+        onClose={() => setIsAddClassModalOpen(false)}
+        onSuccess={() => { router.refresh(); setIsAddClassModalOpen(false); }}
       />
     </div>
   );

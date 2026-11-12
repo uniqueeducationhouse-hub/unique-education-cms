@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, UserPlus, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { X, UserPlus, CheckCircle2, AlertCircle, Loader2, PlusCircle } from 'lucide-react';
 import { createStudent, type CreateStudentInput } from '@/lib/actions/admissions';
 import type { SchoolClass, Section } from '@/types/database.types';
 
@@ -10,18 +10,19 @@ interface NewStudentModalProps {
   onClose: () => void;
   classes: (SchoolClass & { sections: Section[] })[];
   onSuccess?: () => void;
+  onAddClass?: () => void;
 }
 
-export function NewStudentModal({ isOpen, onClose, classes, onSuccess }: NewStudentModalProps) {
-  const [selectedClassId, setSelectedClassId] = useState<string>(classes[0]?.id || '');
+export function NewStudentModal({ isOpen, onClose, classes, onSuccess, onAddClass }: NewStudentModalProps) {
+  const [selectedClassId, setSelectedClassId] = useState<string>(classes[0]?.id ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Available sections for chosen class
-  const activeClass = classes.find((c) => c.id === selectedClassId) || classes[0];
-  const availableSections = activeClass?.sections || [];
-  const defaultSectionId = availableSections[0]?.id || '';
+  const activeClass = classes.find((c) => c.id === selectedClassId) ?? classes[0];
+  const availableSections = activeClass?.sections ?? [];
+  const defaultSectionId = availableSections[0]?.id ?? '';
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -41,16 +42,29 @@ export function NewStudentModal({ isOpen, onClose, classes, onSuccess }: NewStud
 
   if (!isOpen) return null;
 
+  // Guard: no classes configured yet
+  const hasNoClasses = classes.length === 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg(null);
     setSuccessMsg(null);
 
+    const resolvedClassId = selectedClassId || classes[0]?.id || '';
+    const resolvedSectionId = formData.section_id || defaultSectionId || '';
+
+    // Validate UUIDs before hitting Supabase
+    if (!resolvedClassId || !resolvedSectionId) {
+      setErrorMsg('Please select a valid Class and Section before submitting.');
+      setIsSubmitting(false);
+      return;
+    }
+
     const payload: CreateStudentInput = {
       ...formData,
-      class_id: selectedClassId || classes[0]?.id || '',
-      section_id: formData.section_id || defaultSectionId || '',
+      class_id: resolvedClassId,
+      section_id: resolvedSectionId,
     };
 
     const res = await createStudent(payload);
@@ -97,6 +111,27 @@ export function NewStudentModal({ isOpen, onClose, classes, onSuccess }: NewStud
           <div className="mx-6 mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
             <span>{successMsg}</span>
+          </div>
+        )}
+
+        {/* Empty Classes Warning */}
+        {hasNoClasses && (
+          <div className="mx-6 mt-4 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+            <p className="font-bold mb-1">⚠️ No classes configured yet</p>
+            <p className="text-amber-700 mb-3">
+              You need to add at least one class and section before enrolling students.
+              Run the seed SQL from <code className="font-mono bg-amber-100 px-1 rounded">supabase/schema.sql</code> in your Supabase SQL Editor, or use the button below.
+            </p>
+            {onAddClass && (
+              <button
+                type="button"
+                onClick={() => { onClose(); onAddClass(); }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition"
+              >
+                <PlusCircle className="h-3.5 w-3.5" />
+                Add Class / Section
+              </button>
+            )}
           </div>
         )}
 
@@ -274,8 +309,8 @@ export function NewStudentModal({ isOpen, onClose, classes, onSuccess }: NewStud
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow flex items-center gap-2 transition disabled:opacity-50"
+              disabled={isSubmitting || hasNoClasses}
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
