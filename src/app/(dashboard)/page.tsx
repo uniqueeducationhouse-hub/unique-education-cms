@@ -74,9 +74,9 @@ async function DashboardContent() {
               Connected to Supabase
             </span>
           </div>
-          <h2 className="text-2xl font-bold">Apex Academy Management Portal</h2>
+          <h2 className="text-2xl font-bold">Unique Education Management Portal</h2>
           <p className="text-indigo-100 text-sm mt-1 max-w-xl">
-            Integrated Next.js App Router & Supabase cloud backend covering Student & Teacher Admissions, Daily Attendance, Billing Vouchers, and Exam Marks.
+            Unique Education, Pakistan Campus • Integrated Next.js App Router & Supabase cloud backend covering Student & Teacher Admissions, Daily Attendance, Billing Vouchers, and Exam Marks.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -260,7 +260,7 @@ export default function DashboardPage() {
       fallback={
         <div className="min-h-[400px] flex flex-col items-center justify-center gap-3 text-slate-500 text-xs">
           <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
-          <span>Loading Apex Academy dashboard from Supabase...</span>
+          <span>Loading Unique Education dashboard from Supabase...</span>
         </div>
       }
     >

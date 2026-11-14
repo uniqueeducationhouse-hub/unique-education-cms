@@ -59,7 +59,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-200 mb-4 animate-in fade-in zoom-in duration-500">
             <GraduationCap className="h-10 w-10" />
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Apex School CMS</h1>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Unique Education CMS</h1>
           <p className="text-slate-500 font-medium mt-2">Institutional Staff Login Portal</p>
         </div>
 
@@ -140,7 +140,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-[11px] text-slate-400 font-medium">
-          &copy; 2026 Apex Cambridge Grammar School. Powered by Supabase Secure Auth.
+          &copy; 2026 Unique Education, Pakistan Campus. Powered by Supabase Secure Auth.
         </div>
       </div>
     </div>

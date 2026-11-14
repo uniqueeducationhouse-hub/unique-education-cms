@@ -18,13 +18,13 @@ export interface SchoolSettings {
 }
 
 export const DEFAULT_SCHOOL_SETTINGS: SchoolSettings = {
-  schoolName: 'Apex Cambridge Grammar School',
-  tagline: 'Affiliated with BISE & Cambridge Assessment International Education',
-  campusAddress: 'Plot # 18, Block B, Main Boulevard, Gulberg III, Lahore, Pakistan',
+  schoolName: 'Unique Education, Pakistan Campus',
+  tagline: 'Excellence in Education & Professional Development',
+  campusAddress: 'Main Boulevard, Gulberg III, Lahore, Pakistan',
   phone: '+92 42 35789123 / +92 300 1234567',
-  email: 'info@apexschool.edu.pk',
+  email: 'info@uniqueeducation.edu.pk',
   bankName: 'Meezan Bank Limited',
-  accountTitle: 'Apex Cambridge Grammar School Fee A/C',
+  accountTitle: 'Unique Education Fee Collection A/C',
   accountNumber: 'PK36MEZN0001234567890101',
   branchName: 'Gulberg III Branch, Lahore',
   logoUrl: null,
