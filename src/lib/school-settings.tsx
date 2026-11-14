@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 export interface SchoolSettings {
   schoolName: string;
@@ -34,51 +35,113 @@ const STORAGE_KEY = 'sms_school_settings_pk';
 
 interface SchoolSettingsContextType {
   settings: SchoolSettings;
-  updateSettings: (newSettings: Partial<SchoolSettings>) => void;
+  updateSettings: (newSettings: Partial<SchoolSettings>) => Promise<void>;
   uploadLogo: (file: File) => Promise<{ success: boolean; error?: string }>;
-  removeLogo: () => void;
-  resetSettings: () => void;
+  removeLogo: () => Promise<void>;
+  resetSettings: () => Promise<void>;
   isLoaded: boolean;
 }
 
 const SchoolSettingsContext = createContext<SchoolSettingsContextType>({
   settings: DEFAULT_SCHOOL_SETTINGS,
-  updateSettings: () => {},
+  updateSettings: async () => {},
   uploadLogo: async () => ({ success: false }),
-  removeLogo: () => {},
-  resetSettings: () => {},
+  removeLogo: async () => {},
+  resetSettings: async () => {},
   isLoaded: false,
 });
 
 export function SchoolSettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<SchoolSettings>(DEFAULT_SCHOOL_SETTINGS);
   const [isLoaded, setIsLoaded] = useState(false);
+  const supabase = createClient();
 
-  // Load from localStorage on mount
+  // Load from Supabase (with localStorage fallback) on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setSettings((prev) => ({ ...prev, ...parsed }));
-      }
-    } catch (e) {
-      console.warn('Failed to load school settings from localStorage', e);
-    } finally {
-      setIsLoaded(true);
-    }
-  }, []);
-
-  const updateSettings = (newSettings: Partial<SchoolSettings>) => {
-    setSettings((prev) => {
-      const updated = { ...prev, ...newSettings };
+    async function fetchSettings() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      } catch (e) {
-        console.error('Failed to save school settings to localStorage', e);
+        const { data, error } = await supabase
+          .from('school_settings')
+          .select('*')
+          .eq('id', 1)
+          .single();
+
+        if (data && !error) {
+          const loaded: SchoolSettings = {
+            schoolName: data.school_name || DEFAULT_SCHOOL_SETTINGS.schoolName,
+            tagline: data.tagline || DEFAULT_SCHOOL_SETTINGS.tagline,
+            campusAddress: data.campus_address || DEFAULT_SCHOOL_SETTINGS.campusAddress,
+            phone: data.phone || DEFAULT_SCHOOL_SETTINGS.phone,
+            email: data.email || DEFAULT_SCHOOL_SETTINGS.email,
+            bankName: data.bank_name || DEFAULT_SCHOOL_SETTINGS.bankName,
+            accountTitle: data.account_title || DEFAULT_SCHOOL_SETTINGS.accountTitle,
+            accountNumber: data.account_number || DEFAULT_SCHOOL_SETTINGS.accountNumber,
+            branchName: data.branch_name || DEFAULT_SCHOOL_SETTINGS.branchName,
+            logoUrl: data.logo_url || null,
+            principalName: data.principal_name || DEFAULT_SCHOOL_SETTINGS.principalName,
+          };
+          setSettings(loaded);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
+          setIsLoaded(true);
+          return;
+        }
+      } catch (err) {
+        console.warn('Supabase fetch school_settings failed, falling back to local storage', err);
       }
-      return updated;
-    });
+
+      // Fallback to localStorage
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setSettings((prev) => ({ ...prev, ...parsed }));
+        }
+      } catch (e) {
+        console.warn('Failed to load school settings from localStorage', e);
+      } finally {
+        setIsLoaded(true);
+      }
+    }
+
+    fetchSettings();
+  }, [supabase]);
+
+  const updateSettings = async (newSettings: Partial<SchoolSettings>) => {
+    const updated = { ...settings, ...newSettings };
+    setSettings(updated);
+
+    // Save to localStorage immediately for resilient offline/fallback state
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save to localStorage', e);
+    }
+
+    // Save to Supabase school_settings table
+    try {
+      const dbPayload = {
+        id: 1,
+        school_name: updated.schoolName,
+        tagline: updated.tagline,
+        campus_address: updated.campusAddress,
+        phone: updated.phone,
+        email: updated.email,
+        bank_name: updated.bankName,
+        account_title: updated.accountTitle,
+        account_number: updated.accountNumber,
+        branch_name: updated.branchName,
+        logo_url: updated.logoUrl,
+        principal_name: updated.principalName,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase.from('school_settings').upsert(dbPayload);
+      if (error) {
+        console.warn('Supabase school_settings upsert error:', error.message);
+      }
+    } catch (err) {
+      console.warn('Failed to persist school settings to Supabase', err);
+    }
   };
 
   const uploadLogo = async (file: File): Promise<{ success: boolean; error?: string }> => {
@@ -91,9 +154,9 @@ export function SchoolSettingsProvider({ children }: { children: React.ReactNode
 
     return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const base64Url = e.target?.result as string;
-        updateSettings({ logoUrl: base64Url });
+        await updateSettings({ logoUrl: base64Url });
         resolve({ success: true });
       };
       reader.onerror = () => {
@@ -103,15 +166,32 @@ export function SchoolSettingsProvider({ children }: { children: React.ReactNode
     });
   };
 
-  const removeLogo = () => {
-    updateSettings({ logoUrl: null });
+  const removeLogo = async () => {
+    await updateSettings({ logoUrl: null });
   };
 
-  const resetSettings = () => {
+  const resetSettings = async () => {
     setSettings(DEFAULT_SCHOOL_SETTINGS);
     try {
       localStorage.removeItem(STORAGE_KEY);
-    } catch {}
+      await supabase.from('school_settings').upsert({
+        id: 1,
+        school_name: DEFAULT_SCHOOL_SETTINGS.schoolName,
+        tagline: DEFAULT_SCHOOL_SETTINGS.tagline,
+        campus_address: DEFAULT_SCHOOL_SETTINGS.campusAddress,
+        phone: DEFAULT_SCHOOL_SETTINGS.phone,
+        email: DEFAULT_SCHOOL_SETTINGS.email,
+        bank_name: DEFAULT_SCHOOL_SETTINGS.bankName,
+        account_title: DEFAULT_SCHOOL_SETTINGS.accountTitle,
+        account_number: DEFAULT_SCHOOL_SETTINGS.accountNumber,
+        branch_name: DEFAULT_SCHOOL_SETTINGS.branchName,
+        logo_url: null,
+        principal_name: DEFAULT_SCHOOL_SETTINGS.principalName,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.warn('Error resetting settings', e);
+    }
   };
 
   return (

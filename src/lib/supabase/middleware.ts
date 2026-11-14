@@ -56,7 +56,23 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Refresh auth token if expired
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const path = request.nextUrl.pathname;
+
+  // 1. If NOT logged in and trying to access dashboard/modules -> Redirect to /login
+  if (!user && path !== '/login' && !path.startsWith('/auth')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  // 2. If logged in and trying to access /login -> Redirect to / (dashboard)
+  if (user && path === '/login') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }

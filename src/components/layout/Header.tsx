@@ -1,8 +1,19 @@
 'use client';
 
-import { Bell, Search, ShieldCheck } from 'lucide-react';
+import { Bell, Search, ShieldCheck, LogOut } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export function Header() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
+
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between no-print sticky top-0 z-10 shadow-xs">
       {/* Search Input */}
@@ -41,6 +52,13 @@ export function Header() {
               <span>Super Administrator</span>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className="ml-2 p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+            title="Sign Out"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </header>

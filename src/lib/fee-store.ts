@@ -1,5 +1,11 @@
 'use client';
 
+export interface CustomFeeCharge {
+  id: string;
+  label: string;
+  amount: number;
+}
+
 export interface FeeVoucher {
   id: string;
   voucher_number: string;
@@ -14,9 +20,12 @@ export interface FeeVoucher {
   issue_date: string;
   due_date: string;
   tuition_fee: number;
+  discount: number;
+  discount_reason?: string;
   admission_fee: number;
   exam_fee: number;
   misc_charges: number;
+  custom_charges: CustomFeeCharge[];
   arrears: number;
   late_fee: number;
   base_amount: number;
@@ -27,6 +36,18 @@ export interface FeeVoucher {
   receipt_number?: string;
   transaction_ref?: string;
   received_by?: string;
+}
+
+export function calculateVoucherTotal(v: Partial<FeeVoucher>): number {
+  const tuition = v.tuition_fee || 0;
+  const discount = v.discount || 0;
+  const admission = v.admission_fee || 0;
+  const exam = v.exam_fee || 0;
+  const misc = v.misc_charges || 0;
+  const arrears = v.arrears || 0;
+  const customSum = (v.custom_charges || []).reduce((acc, c) => acc + (c.amount || 0), 0);
+
+  return Math.max(0, (tuition - discount) + admission + exam + misc + arrears + customSum);
 }
 
 export const DEFAULT_PAKISTANI_VOUCHERS: FeeVoucher[] = [
@@ -43,14 +64,20 @@ export const DEFAULT_PAKISTANI_VOUCHERS: FeeVoucher[] = [
     billing_month: 'November 2026',
     issue_date: '2026-11-01',
     due_date: '2026-11-20',
-    tuition_fee: 3000,
+    tuition_fee: 3500,
+    discount: 500,
+    discount_reason: 'Sibling Concession',
     admission_fee: 0,
     exam_fee: 400,
     misc_charges: 400,
+    custom_charges: [
+      { id: 'chg-1', label: 'Van / Transport Service', amount: 1500 },
+      { id: 'chg-2', label: 'Generator & AC Fund', amount: 300 },
+    ],
     arrears: 0,
     late_fee: 300,
-    base_amount: 3800,
-    paid_amount: 3800,
+    base_amount: 5100,
+    paid_amount: 5100,
     status: 'paid',
     payment_method: 'cash',
     payment_date: '2026-11-14',
@@ -71,13 +98,17 @@ export const DEFAULT_PAKISTANI_VOUCHERS: FeeVoucher[] = [
     billing_month: 'November 2026',
     issue_date: '2026-11-01',
     due_date: '2026-11-20',
-    tuition_fee: 3000,
+    tuition_fee: 3500,
+    discount: 0,
     admission_fee: 0,
     exam_fee: 400,
     misc_charges: 400,
+    custom_charges: [
+      { id: 'chg-3', label: 'Science Lab Chemicals Fee', amount: 500 },
+    ],
     arrears: 0,
     late_fee: 300,
-    base_amount: 3800,
+    base_amount: 4800,
     paid_amount: 0,
     status: 'unpaid',
   },
@@ -94,13 +125,15 @@ export const DEFAULT_PAKISTANI_VOUCHERS: FeeVoucher[] = [
     billing_month: 'October 2026',
     issue_date: '2026-10-01',
     due_date: '2026-10-20',
-    tuition_fee: 3000,
+    tuition_fee: 3500,
+    discount: 0,
     admission_fee: 0,
     exam_fee: 400,
     misc_charges: 400,
+    custom_charges: [],
     arrears: 0,
     late_fee: 300,
-    base_amount: 3800,
+    base_amount: 4300,
     paid_amount: 0,
     status: 'overdue',
   },
@@ -117,14 +150,19 @@ export const DEFAULT_PAKISTANI_VOUCHERS: FeeVoucher[] = [
     billing_month: 'November 2026',
     issue_date: '2026-11-01',
     due_date: '2026-11-20',
-    tuition_fee: 2800,
+    tuition_fee: 3000,
+    discount: 300,
+    discount_reason: 'Academic Merit Scholarship',
     admission_fee: 0,
     exam_fee: 350,
     misc_charges: 350,
+    custom_charges: [
+      { id: 'chg-4', label: 'Van / Transport Service', amount: 1500 },
+    ],
     arrears: 0,
     late_fee: 300,
-    base_amount: 3500,
-    paid_amount: 3500,
+    base_amount: 4900,
+    paid_amount: 4900,
     status: 'paid',
     payment_method: 'bank_transfer',
     payment_date: '2026-11-10',
@@ -145,13 +183,17 @@ export const DEFAULT_PAKISTANI_VOUCHERS: FeeVoucher[] = [
     billing_month: 'November 2026',
     issue_date: '2026-11-01',
     due_date: '2026-11-20',
-    tuition_fee: 2200,
+    tuition_fee: 2500,
+    discount: 0,
     admission_fee: 0,
     exam_fee: 300,
     misc_charges: 300,
+    custom_charges: [
+      { id: 'chg-5', label: 'Exam Paper Fund & Stationery', amount: 400 },
+    ],
     arrears: 0,
     late_fee: 250,
-    base_amount: 2800,
+    base_amount: 3500,
     paid_amount: 0,
     status: 'unpaid',
   },

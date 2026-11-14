@@ -37,9 +37,9 @@ export default function SchoolSettingsPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateSettings(formData);
+    await updateSettings(formData);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3500);
   };
@@ -58,9 +58,9 @@ export default function SchoolSettingsPage() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (window.confirm('Reset all school settings and bank information to defaults?')) {
-      resetSettings();
+      await resetSettings();
       setFormData(DEFAULT_SCHOOL_SETTINGS);
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 3000);
@@ -424,6 +424,71 @@ export default function SchoolSettingsPage() {
           </button>
         </div>
       </form>
+
+      {/* Supabase SQL Code Snippet Card */}
+      <div className="bg-slate-900 text-slate-200 p-6 rounded-2xl shadow-xl border border-slate-800 space-y-3 mt-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Building2 className="h-5 w-5 text-indigo-400" />
+            <h3 className="font-bold text-sm text-white">Supabase PostgreSQL Schema for School Settings</h3>
+          </div>
+          <span className="text-[10px] px-2 py-1 bg-indigo-950 text-indigo-300 font-mono rounded border border-indigo-800">
+            PostgreSQL 15+
+          </span>
+        </div>
+        <p className="text-xs text-slate-400">
+          Execute this SQL in your Supabase SQL Editor to store school profile and bank account settings in Supabase instead of localStorage.
+        </p>
+        <pre className="bg-slate-950 text-emerald-400 p-4 rounded-xl text-xs font-mono overflow-x-auto border border-slate-800">
+          {`-- 1. School Settings Table (Single-row configuration store)
+CREATE TABLE public.school_settings (
+    id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    school_name TEXT NOT NULL,
+    tagline TEXT,
+    campus_address TEXT,
+    phone TEXT,
+    email TEXT,
+    bank_name TEXT,
+    account_title TEXT,
+    account_number TEXT,
+    branch_name TEXT,
+    logo_url TEXT,
+    principal_name TEXT,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Seed initial default row
+INSERT INTO public.school_settings (
+    id, school_name, tagline, campus_address, phone, email,
+    bank_name, account_title, account_number, branch_name, principal_name
+) VALUES (
+    1,
+    'Apex Cambridge Grammar School',
+    'Affiliated with BISE & Cambridge Assessment International Education',
+    'Plot # 18, Block B, Main Boulevard, Gulberg III, Lahore, Pakistan',
+    '+92 42 35789123 / +92 300 1234567',
+    'info@apexschool.edu.pk',
+    'Meezan Bank Limited',
+    'Apex Cambridge Grammar School Fee A/C',
+    'PK36MEZN0001234567890101',
+    'Gulberg III Branch, Lahore',
+    'Prof. Muhammad Tariq Khan'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Enable RLS
+ALTER TABLE public.school_settings ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "Anyone can read school settings" ON public.school_settings
+    FOR SELECT USING (true);
+
+CREATE POLICY "Admins can update school settings" ON public.school_settings
+    FOR ALL USING (
+        public.current_user_role() IN ('super_admin', 'admin')
+        OR auth.uid() IS NOT NULL
+    );`}
+        </pre>
+      </div>
     </div>
   );
 }

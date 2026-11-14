@@ -18,6 +18,7 @@ import {
   Wallet,
   ArrowUpRight,
   Sparkles,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useSchoolSettings } from '@/lib/school-settings';
@@ -33,6 +34,7 @@ import {
 import { PaymentModal } from '@/components/fees/PaymentModal';
 import { CashReceiptModal } from '@/components/fees/CashReceiptModal';
 import { DateSettingsModal } from '@/components/fees/DateSettingsModal';
+import { EditFeeModal } from '@/components/fees/EditFeeModal';
 
 function FeesContent() {
   const { settings } = useSchoolSettings();
@@ -45,6 +47,7 @@ function FeesContent() {
   // Modals state
   const [payingVoucher, setPayingVoucher] = useState<FeeVoucher | null>(null);
   const [receiptVoucher, setReceiptVoucher] = useState<FeeVoucher | null>(null);
+  const [editingFeeVoucher, setEditingFeeVoucher] = useState<FeeVoucher | null>(null);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -139,6 +142,14 @@ function FeesContent() {
     const msg = buildWhatsAppMessage(settings.schoolName, v);
     const url = getWhatsAppUrl(v.guardian_phone || '+923001234567', msg);
     window.open(url, '_blank');
+  };
+
+  // Custom Fee & Named Charges Update
+  const handleSaveCustomFee = (updatedVoucher: FeeVoucher) => {
+    const updated = vouchers.map((v) => (v.id === updatedVoucher.id ? updatedVoucher : v));
+    setVouchers(updated);
+    saveVouchers(updated);
+    showToast(`Updated fee structure for ${updatedVoucher.student_name}: Total ${formatCurrency(updatedVoucher.base_amount)}`);
   };
 
   return (
@@ -416,6 +427,17 @@ function FeesContent() {
                           </>
                         )}
 
+                        {/* Edit Fee / Add Custom Charges Button */}
+                        <button
+                          type="button"
+                          onClick={() => setEditingFeeVoucher(v)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-semibold text-xs transition"
+                          title="Custom Tuition Fee, Sibling Discount & Named Charges"
+                        >
+                          <SlidersHorizontal className="h-3.5 w-3.5 text-indigo-600" />
+                          <span>Edit Fee / Charges</span>
+                        </button>
+
                         {/* 3-Part Bank Challan Link */}
                         <Link
                           href={`/fees/voucher/${v.id}`}
@@ -434,6 +456,14 @@ function FeesContent() {
           </table>
         </div>
       </div>
+
+      {/* Edit Fee / Custom Charges Modal */}
+      <EditFeeModal
+        voucher={editingFeeVoucher}
+        isOpen={Boolean(editingFeeVoucher)}
+        onClose={() => setEditingFeeVoucher(null)}
+        onSave={handleSaveCustomFee}
+      />
 
       {/* Payment Confirmation Modal */}
       <PaymentModal

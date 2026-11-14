@@ -46,14 +46,18 @@ export function PrintableChallan({ voucherId }: PrintableChallanProps) {
     base_amount: 3800,
     paid_amount: 3800,
     status: 'paid' as const,
+    discount: 0,
+    custom_charges: [],
   };
 
+  const customChargesSum = (voucher.custom_charges || []).reduce((acc: number, c: { amount: number }) => acc + (c.amount || 0), 0);
   const totalWithinDueDate =
-    (voucher.tuition_fee || 3000) +
+    Math.max(0, (voucher.tuition_fee || 3000) - (voucher.discount || 0)) +
     (voucher.admission_fee || 0) +
     (voucher.exam_fee || 400) +
     (voucher.misc_charges || 400) +
-    (voucher.arrears || 0);
+    (voucher.arrears || 0) +
+    customChargesSum;
 
   const totalAfterDueDate = totalWithinDueDate + (voucher.late_fee || 300);
   const isPaid = voucher.status === 'paid';

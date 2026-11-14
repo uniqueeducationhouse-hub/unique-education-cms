@@ -10,12 +10,14 @@ import {
   FileSpreadsheet,
   LayoutDashboard,
   Settings,
+  Briefcase,
 } from 'lucide-react';
 import { useSchoolSettings } from '@/lib/school-settings';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Admissions', href: '/admissions', icon: Users, badge: 'Module 1' },
+  { name: 'Staff & Payroll', href: '/staff', icon: Briefcase, badge: 'HR' },
   { name: 'Daily Attendance', href: '/attendance', icon: CalendarCheck2, badge: 'Module 2' },
   { name: 'Fees & Vouchers', href: '/fees', icon: Receipt, badge: 'Module 3' },
   { name: 'Exams & Reports', href: '/exams', icon: FileSpreadsheet, badge: 'Module 4' },
