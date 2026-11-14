@@ -17,6 +17,10 @@ import {
   Sparkles,
   Layers,
   GraduationCap,
+  Calendar,
+  Settings2,
+  Edit3,
+  Check,
 } from 'lucide-react';
 import { calculateGrade } from '@/lib/utils';
 import {
@@ -27,6 +31,12 @@ import {
   type ClassSubjectsMap,
   type SubjectItem,
 } from '@/lib/subjects';
+import {
+  type ExamSession,
+  DEFAULT_PAKISTANI_EXAMS,
+  loadExamSessions,
+  saveExamSessions,
+} from '@/lib/exams-store';
 
 interface DynamicStudentMarks {
   studentId: string;
@@ -139,7 +149,6 @@ const defaultStudentsByClass: Record<string, DynamicStudentMarks[]> = {
   ],
 };
 
-// Fallback generator for other classes
 function getSampleStudentsForClass(className: string): DynamicStudentMarks[] {
   if (defaultStudentsByClass[className]) {
     return defaultStudentsByClass[className];
@@ -170,7 +179,8 @@ function getSampleStudentsForClass(className: string): DynamicStudentMarks[] {
 }
 
 export default function ExamsPage() {
-  const [activeTab, setActiveTab] = useState<'matrix' | 'subjects'>('matrix');
+  const [activeTab, setActiveTab] = useState<'matrix' | 'subjects' | 'setup'>('matrix');
+  const [examSessions, setExamSessions] = useState<ExamSession[]>(DEFAULT_PAKISTANI_EXAMS);
   const [selectedTerm, setSelectedTerm] = useState('Midterm Examination 2026-27');
   const [selectedClass, setSelectedClass] = useState('Class 10');
   const [classSubjects, setClassSubjects] = useState<ClassSubjectsMap>(DEFAULT_PAKISTANI_SUBJECTS);
@@ -178,16 +188,36 @@ export default function ExamsPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // New Subject Form state
+  // Subject Modal state
   const [newSubName, setNewSubName] = useState('');
   const [newSubTotal, setNewSubTotal] = useState(100);
   const [newSubPass, setNewSubPass] = useState(40);
   const [showAddSubjectModal, setShowAddSubjectModal] = useState(false);
 
-  // Load saved subjects from localStorage
+  // Exam Setup Form Modal state
+  const [showExamModal, setShowExamModal] = useState(false);
+  const [editingExamId, setEditingExamId] = useState<string | null>(null);
+  const [examFormData, setExamFormData] = useState<Omit<ExamSession, 'id'>>({
+    title: '',
+    term: 'Midterm',
+    academic_year: '2026-2027',
+    start_date: '2026-10-15',
+    end_date: '2026-10-28',
+    passing_percentage: 40,
+    is_published: true,
+    description: '',
+  });
+
+  // Load saved subjects & exams on mount
   useEffect(() => {
-    const loaded = loadSavedSubjects();
-    setClassSubjects(loaded);
+    const loadedSubs = loadSavedSubjects();
+    setClassSubjects(loadedSubs);
+
+    const loadedExams = loadExamSessions();
+    setExamSessions(loadedExams);
+    if (loadedExams.length > 0 && !loadedExams.some((e) => e.title === selectedTerm)) {
+      setSelectedTerm(loadedExams[0].title);
+    }
   }, []);
 
   // Update students when class changes
@@ -197,7 +227,7 @@ export default function ExamsPage() {
 
   const activeSubjects: SubjectItem[] = classSubjects[selectedClass] || [];
 
-  // Update a student's mark for a given subject
+  // Update student mark
   const handleMarkChange = (studentId: string, subjectId: string, value: string, maxMarks: number) => {
     const num = Math.min(maxMarks, Math.max(0, Number(value) || 0));
     setStudents((prev) =>
@@ -219,7 +249,7 @@ export default function ExamsPage() {
     setTimeout(() => setIsSaved(false), 3000);
   };
 
-  // Add a new subject to currently selected class
+  // Add a new subject
   const handleAddSubject = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSubName.trim()) return;
@@ -242,7 +272,6 @@ export default function ExamsPage() {
     setShowAddSubjectModal(false);
   };
 
-  // Remove a subject
   const handleDeleteSubject = (subjectId: string) => {
     if (confirm('Are you sure you want to remove this subject from ' + selectedClass + '?')) {
       const updated = {
@@ -254,7 +283,6 @@ export default function ExamsPage() {
     }
   };
 
-  // Reset to default Pakistani curriculum
   const handleResetCurriculum = () => {
     if (confirm('Reset all classes to standard Pakistani School Curriculum?')) {
       setClassSubjects(DEFAULT_PAKISTANI_SUBJECTS);
@@ -262,31 +290,94 @@ export default function ExamsPage() {
     }
   };
 
-  // Filter students by search
+  // Exam Setup Handlers
+  const handleOpenCreateExam = () => {
+    setEditingExamId(null);
+    setExamFormData({
+      title: '',
+      term: 'Midterm',
+      academic_year: '2026-2027',
+      start_date: '2026-10-15',
+      end_date: '2026-10-28',
+      passing_percentage: 40,
+      is_published: true,
+      description: '',
+    });
+    setShowExamModal(true);
+  };
+
+  const handleOpenEditExam = (exam: ExamSession) => {
+    setEditingExamId(exam.id);
+    setExamFormData({
+      title: exam.title,
+      term: exam.term,
+      academic_year: exam.academic_year,
+      start_date: exam.start_date,
+      end_date: exam.end_date,
+      passing_percentage: exam.passing_percentage,
+      is_published: exam.is_published,
+      description: exam.description || '',
+    });
+    setShowExamModal(true);
+  };
+
+  const handleSaveExam = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!examFormData.title.trim()) return;
+
+    let updated: ExamSession[];
+    if (editingExamId) {
+      updated = examSessions.map((ex) =>
+        ex.id === editingExamId ? { ...ex, ...examFormData } : ex
+      );
+    } else {
+      const newExam: ExamSession = {
+        id: `exam-${Date.now().toString().slice(-6)}`,
+        ...examFormData,
+      };
+      updated = [...examSessions, newExam];
+      setSelectedTerm(newExam.title);
+    }
+
+    setExamSessions(updated);
+    saveExamSessions(updated);
+    setShowExamModal(false);
+  };
+
+  const handleDeleteExam = (id: string) => {
+    if (confirm('Are you sure you want to delete this exam schedule?')) {
+      const updated = examSessions.filter((ex) => ex.id !== id);
+      setExamSessions(updated);
+      saveExamSessions(updated);
+      if (updated.length > 0) {
+        setSelectedTerm(updated[0].title);
+      }
+    }
+  };
+
   const filteredStudents = students.filter((s) => {
     const q = searchQuery.toLowerCase();
     return s.name.toLowerCase().includes(q) || s.rollNo.includes(q) || s.admissionNo.toLowerCase().includes(q);
   });
 
-  // Calculate total max marks for active subjects in this class
   const classTotalMaxMarks = activeSubjects.reduce((acc, sub) => acc + sub.totalMarks, 0);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">
             Module 4: Exam Marks, Curriculum &amp; Report Cards
           </span>
-          <h1 className="text-2xl font-bold text-slate-900 mt-1">Examinations &amp; Subjects Management</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mt-1">Examinations &amp; Academic Setup</h1>
           <p className="text-sm text-slate-500">
-            Configure Pakistani curriculum subjects from Playgroup to Class 10 and record exam marks matrix.
+            Create new examination schedules, configure Pakistani curriculum subjects, and record grade matrix.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          {activeTab === 'matrix' ? (
+          {activeTab === 'matrix' && (
             <button
               type="button"
               onClick={handleSaveMarks}
@@ -295,7 +386,9 @@ export default function ExamsPage() {
               <Save className="h-4 w-4" />
               Save Grade Sheet
             </button>
-          ) : (
+          )}
+
+          {activeTab === 'subjects' && (
             <button
               type="button"
               onClick={() => setShowAddSubjectModal(true)}
@@ -303,6 +396,17 @@ export default function ExamsPage() {
             >
               <PlusCircle className="h-4 w-4" />
               + Add Subject to {selectedClass}
+            </button>
+          )}
+
+          {activeTab === 'setup' && (
+            <button
+              type="button"
+              onClick={handleOpenCreateExam}
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-bold rounded-lg shadow-sm transition"
+            >
+              <PlusCircle className="h-4 w-4" />
+              + Create New Exam
             </button>
           )}
         </div>
@@ -316,11 +420,11 @@ export default function ExamsPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200">
+      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('matrix')}
-          className={`flex items-center gap-2 pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition ${
+          className={`flex items-center gap-2 pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition ${
             activeTab === 'matrix'
               ? 'border-indigo-600 text-indigo-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -333,83 +437,100 @@ export default function ExamsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('subjects')}
-          className={`flex items-center gap-2 pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition ${
+          className={`flex items-center gap-2 pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition ${
             activeTab === 'subjects'
               ? 'border-indigo-600 text-indigo-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <BookOpen className="h-4 w-4" />
-          <span>Class Subjects &amp; Curriculum ({activeSubjects.length} Subjects)</span>
+          <span>Class Subjects &amp; Curriculum ({activeSubjects.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('setup')}
+          className={`flex items-center gap-2 pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 whitespace-nowrap transition ${
+            activeTab === 'setup'
+              ? 'border-indigo-600 text-indigo-600'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Settings2 className="h-4 w-4" />
+          <span>Exam Setup &amp; Schedules ({examSessions.length})</span>
         </button>
       </div>
 
-      {/* Controls Bar: Exam Session & Class Selection */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex flex-wrap items-center gap-3">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Exam Session</label>
-            <select
-              value={selectedTerm}
-              onChange={(e) => setSelectedTerm(e.target.value)}
-              className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 font-medium focus:bg-white focus:ring-1 focus:ring-indigo-500"
-            >
-              <option>Midterm Examination 2026-27</option>
-              <option>Final Term Examination 2026-27</option>
-              <option>First Term Assessment 2026</option>
-              <option>Send-Up / Pre-Board Examination</option>
-            </select>
+      {/* Selector Filters (Only on Matrix & Subjects tabs) */}
+      {activeTab !== 'setup' && (
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
+                Active Exam Session
+              </label>
+              <select
+                value={selectedTerm}
+                onChange={(e) => setSelectedTerm(e.target.value)}
+                className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 font-medium focus:bg-white focus:ring-1 focus:ring-indigo-500"
+              >
+                {examSessions.map((ex) => (
+                  <option key={ex.id} value={ex.title}>
+                    {ex.title} ({ex.term})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
+                Select Class / Grade
+              </label>
+              <select
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
+                className="text-xs bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-1.5 text-indigo-900 font-bold focus:bg-white focus:ring-1 focus:ring-indigo-500"
+              >
+                {ALL_SCHOOL_CLASSES.map((cls) => (
+                  <option key={cls} value={cls}>
+                    {cls} ({classSubjects[cls]?.length || 0} subjects)
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
-              Select Class / Grade
-            </label>
-            <select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className="text-xs bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-1.5 text-indigo-900 font-bold focus:bg-white focus:ring-1 focus:ring-indigo-500"
+          {activeTab === 'matrix' ? (
+            <div className="flex items-center gap-3 text-xs text-slate-600">
+              <span className="font-bold text-slate-900">Total Max Marks: {classTotalMaxMarks}</span>
+              <span>•</span>
+              <span className="font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Passing: {examSessions.find((e) => e.title === selectedTerm)?.passing_percentage || 40}%
+              </span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResetCurriculum}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition"
             >
-              {ALL_SCHOOL_CLASSES.map((cls) => (
-                <option key={cls} value={cls}>
-                  {cls} ({classSubjects[cls]?.length || 0} subjects)
-                </option>
-              ))}
-            </select>
-          </div>
+              <RotateCcw className="h-3.5 w-3.5" />
+              Reset to Standard Curriculum
+            </button>
+          )}
         </div>
-
-        {activeTab === 'matrix' ? (
-          <div className="flex items-center gap-3 text-xs text-slate-600">
-            <span className="font-bold text-slate-900">Total Max Marks: {classTotalMaxMarks}</span>
-            <span>•</span>
-            <span className="font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              Pakistani Grading Scale
-            </span>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={handleResetCurriculum}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            Reset to Standard Curriculum
-          </button>
-        )}
-      </div>
+      )}
 
       {/* ========================================================================= */}
       {/* TAB 1: MARKS ENTRY MATRIX */}
       {/* ========================================================================= */}
       {activeTab === 'matrix' && (
         <div className="space-y-4">
-          {/* Quick Notice */}
           <div className="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-indigo-900">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-indigo-600 shrink-0" />
               <span>
-                Automatically loaded <strong>{activeSubjects.length} subjects</strong> for <strong>{selectedClass}</strong>. Enter marks to calculate percentages, Pakistani letter grades, and GPAs in real-time.
+                Displaying <strong>{activeSubjects.length} subjects</strong> for <strong>{selectedClass}</strong> in <strong>{selectedTerm}</strong>.
               </span>
             </div>
             <button
@@ -417,11 +538,10 @@ export default function ExamsPage() {
               onClick={() => setActiveTab('subjects')}
               className="font-bold text-indigo-700 hover:underline shrink-0"
             >
-              Manage Subjects &rarr;
+              Configure Subjects &rarr;
             </button>
           </div>
 
-          {/* Table Container */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-slate-700">
@@ -429,7 +549,6 @@ export default function ExamsPage() {
                   <tr>
                     <th className="px-3 py-3">Roll</th>
                     <th className="px-3 py-3">Student Name</th>
-                    {/* Dynamic Columns for EACH Subject */}
                     {activeSubjects.map((sub) => (
                       <th key={sub.id} className="px-2 py-3 text-center whitespace-nowrap">
                         <span className="block text-slate-800 font-bold">{sub.name}</span>
@@ -446,8 +565,7 @@ export default function ExamsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
-                  {filteredStudents.map((s, idx) => {
-                    // Compute totals dynamically based on active subjects
+                  {filteredStudents.map((s) => {
                     const totalObtained = activeSubjects.reduce((sum, sub) => {
                       return sum + (s.marks[sub.id] ?? Math.round(sub.totalMarks * 0.75));
                     }, 0);
@@ -466,7 +584,6 @@ export default function ExamsPage() {
                           {s.name}
                         </td>
 
-                        {/* Subject Marks Inputs */}
                         {activeSubjects.map((sub) => {
                           const currentVal = s.marks[sub.id] ?? Math.round(sub.totalMarks * 0.75);
                           const isFailing = currentVal < sub.passingMarks;
@@ -535,7 +652,7 @@ export default function ExamsPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: CLASS SUBJECTS & CURRICULUM MANAGEMENT */}
+      {/* TAB 2: CLASS SUBJECTS & CURRICULUM */}
       {/* ========================================================================= */}
       {activeTab === 'subjects' && (
         <div className="space-y-4">
@@ -547,7 +664,7 @@ export default function ExamsPage() {
                   Assigned Subjects for {selectedClass}
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Configure curriculum subjects, maximum marks, and passing criteria. These automatically populate the Marks Matrix and Official Report Cards.
+                  Configure curriculum subjects, maximum marks, and passing criteria for Pakistani schools.
                 </p>
               </div>
 
@@ -561,7 +678,6 @@ export default function ExamsPage() {
               </button>
             </div>
 
-            {/* Subject Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
               {activeSubjects.map((sub, i) => (
                 <div
@@ -602,6 +718,131 @@ export default function ExamsPage() {
         </div>
       )}
 
+      {/* ========================================================================= */}
+      {/* TAB 3: EXAM SETUP & MANAGEMENT */}
+      {/* ========================================================================= */}
+      {activeTab === 'setup' && (
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Settings2 className="h-5 w-5 text-indigo-600" />
+                  Examination Terms &amp; Schedules
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Create, edit, or configure exams (Monthly Test, Midterm, Final Term, Send-Up) and define passing marks.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleOpenCreateExam}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition"
+              >
+                <PlusCircle className="h-4 w-4" />
+                + Create New Exam
+              </button>
+            </div>
+
+            {/* Exam Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+              {examSessions.map((exam) => {
+                const isActive = selectedTerm === exam.title;
+
+                return (
+                  <div
+                    key={exam.id}
+                    className={`p-5 rounded-xl border transition flex flex-col justify-between ${
+                      isActive
+                        ? 'border-indigo-600 bg-indigo-50/30 shadow-xs'
+                        : 'border-slate-200 bg-slate-50/60 hover:bg-white'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 uppercase">
+                            {exam.term}
+                          </span>
+                          {exam.is_published ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Published
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
+                              Draft
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditExam(exam)}
+                            className="p-1 text-slate-500 hover:text-indigo-600 rounded transition"
+                            title="Edit Exam Setup"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteExam(exam.id)}
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded transition"
+                            title="Delete Exam"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <h3 className="font-bold text-slate-900 text-base">{exam.title}</h3>
+                      <p className="text-xs text-slate-500 mt-1">{exam.description}</p>
+
+                      <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-200/70 text-[11px] text-slate-600 font-mono">
+                        <div>
+                          <span className="text-[10px] text-slate-400 block font-sans">Academic Year</span>
+                          <span className="font-bold text-slate-900">{exam.academic_year}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block font-sans">Passing Criteria</span>
+                          <span className="font-bold text-emerald-700">{exam.passing_percentage}% Min</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block font-sans">Date Range</span>
+                          <span className="font-medium text-slate-800 text-[10px]">
+                            {exam.start_date} ~ {exam.end_date}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-200/70 flex items-center justify-between">
+                      {isActive ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-100/70 px-2.5 py-1 rounded-md">
+                          <Check className="h-3.5 w-3.5" /> Currently Active on Matrix
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedTerm(exam.title);
+                            setActiveTab('matrix');
+                          }}
+                          className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
+                        >
+                          Select for Marks Entry &rarr;
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Subject Modal */}
       {showAddSubjectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
@@ -635,7 +876,6 @@ export default function ExamsPage() {
                 />
               </div>
 
-              {/* Suggestions */}
               <div className="flex flex-wrap gap-1.5">
                 {[
                   'English',
@@ -700,6 +940,157 @@ export default function ExamsPage() {
                   className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-sm"
                 >
                   Save Subject
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Exam Setup Modal (Create or Edit) */}
+      {showExamModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings2 className="h-5 w-5 text-indigo-400" />
+                <h3 className="font-bold text-sm">
+                  {editingExamId ? 'Edit Exam Setup' : 'Create New Examination Session'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExamModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveExam} className="p-6 space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Exam Title <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  required
+                  type="text"
+                  placeholder="e.g. Monthly Test, Midterm Exam 2026-27, Final Term"
+                  value={examFormData.title}
+                  onChange={(e) => setExamFormData({ ...examFormData, title: e.target.value })}
+                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-medium focus:bg-white focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Academic Term</label>
+                  <select
+                    value={examFormData.term}
+                    onChange={(e) => setExamFormData({ ...examFormData, term: e.target.value })}
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-medium"
+                  >
+                    <option value="First Term">First Term</option>
+                    <option value="Midterm">Midterm</option>
+                    <option value="Final Term">Final Term</option>
+                    <option value="Monthly Assessment">Monthly Assessment</option>
+                    <option value="Send-Up">Send-Up / Pre-Board</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Academic Year</label>
+                  <input
+                    type="text"
+                    placeholder="2026-2027"
+                    value={examFormData.academic_year}
+                    onChange={(e) => setExamFormData({ ...examFormData, academic_year: e.target.value })}
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={examFormData.start_date}
+                    onChange={(e) => setExamFormData({ ...examFormData, start_date: e.target.value })}
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">End Date</label>
+                  <input
+                    type="date"
+                    value={examFormData.end_date}
+                    onChange={(e) => setExamFormData({ ...examFormData, end_date: e.target.value })}
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 items-center">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Passing Criteria (%)
+                  </label>
+                  <input
+                    type="number"
+                    min={20}
+                    max={60}
+                    value={examFormData.passing_percentage}
+                    onChange={(e) =>
+                      setExamFormData({
+                        ...examFormData,
+                        passing_percentage: Number(e.target.value) || 40,
+                      })
+                    }
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 font-mono"
+                  />
+                </div>
+
+                <div className="pt-4">
+                  <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={examFormData.is_published}
+                      onChange={(e) =>
+                        setExamFormData({ ...examFormData, is_published: e.target.checked })
+                      }
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                    />
+                    <span>Publish Results to Students</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Instructions / Description</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Conducted under Punjab Board guidelines..."
+                  value={examFormData.description}
+                  onChange={(e) => setExamFormData({ ...examFormData, description: e.target.value })}
+                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowExamModal(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-sm"
+                >
+                  {editingExamId ? 'Update Exam' : 'Save & Activate Exam'}
                 </button>
               </div>
             </form>

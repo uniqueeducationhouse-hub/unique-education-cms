@@ -1,29 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Printer, Scissors, Settings, Landmark, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Printer, Scissors, Settings, Landmark, GraduationCap, CheckCircle2 } from 'lucide-react';
 import { formatCurrency, numberToWordsPKR } from '@/lib/utils';
 import { useSchoolSettings } from '@/lib/school-settings';
-
-interface VoucherData {
-  voucherNumber: string;
-  studentName: string;
-  fatherName: string;
-  admissionNumber: string;
-  rollNumber: string;
-  className: string;
-  section: string;
-  billingMonth: string;
-  issueDate: string;
-  dueDate: string;
-  tuitionFee: number;
-  admissionFee: number;
-  examFee: number;
-  miscCharges: number;
-  arrears: number;
-  lateFee: number;
-}
+import { loadVouchers, type FeeVoucher } from '@/lib/fee-store';
 
 interface PrintableChallanProps {
   voucherId: string;
@@ -31,30 +13,50 @@ interface PrintableChallanProps {
 
 export function PrintableChallan({ voucherId }: PrintableChallanProps) {
   const { settings } = useSchoolSettings();
+  const [activeVoucher, setActiveVoucher] = useState<FeeVoucher | null>(null);
 
-  // Mock database lookup based on ID, defaulting to standard Pakistani fee voucher
-  const voucher: VoucherData = {
-    voucherNumber: voucherId ? `CH-202611-${voucherId.replace(/[^0-9]/g, '') || '1001'}` : 'CH-202611-1001',
-    studentName: voucherId === 'vch-002' ? 'Aaliyah Khan' : voucherId === 'vch-004' ? 'Liam Johnson' : 'Sophia Martinez',
-    fatherName: voucherId === 'vch-002' ? 'Farhan Khan' : voucherId === 'vch-004' ? 'David Johnson' : 'Carlos Martinez',
-    admissionNumber: voucherId === 'vch-002' ? 'ADM-2026-10-002' : 'ADM-2026-10-001',
-    rollNumber: voucherId === 'vch-002' ? '1002' : voucherId === 'vch-004' ? '0914' : '1001',
-    className: voucherId === 'vch-004' ? 'Class 9' : 'Class 10',
-    section: voucherId === 'vch-004' ? 'Section B' : 'Section A',
-    billingMonth: 'November 2026',
-    issueDate: '01 Nov 2026',
-    dueDate: '20 Nov 2026',
-    tuitionFee: 3000,
-    admissionFee: 0,
-    examFee: 400,
-    miscCharges: 400,
+  useEffect(() => {
+    const all = loadVouchers();
+    const found = all.find((v) => v.id === voucherId) || all[0];
+    if (found) {
+      setActiveVoucher(found);
+    }
+  }, [voucherId]);
+
+  // Fallback defaults if loading
+  const voucher = activeVoucher || {
+    id: voucherId,
+    voucher_number: `CH-202611-${voucherId.replace(/[^0-9]/g, '') || '1001'}`,
+    student_name: voucherId === 'vch-002' ? 'Aaliyah Khan' : 'Sophia Martinez',
+    father_name: voucherId === 'vch-002' ? 'Farhan Khan' : 'Carlos Martinez',
+    guardian_phone: '+923001234561',
+    admission_number: 'ADM-2026-10-001',
+    roll_number: '1001',
+    class: 'Class 10',
+    section: 'Section A',
+    billing_month: 'November 2026',
+    issue_date: '2026-11-01',
+    due_date: '2026-11-20',
+    tuition_fee: 3000,
+    admission_fee: 0,
+    exam_fee: 400,
+    misc_charges: 400,
     arrears: 0,
-    lateFee: 300,
+    late_fee: 300,
+    base_amount: 3800,
+    paid_amount: 3800,
+    status: 'paid' as const,
   };
 
   const totalWithinDueDate =
-    voucher.tuitionFee + voucher.admissionFee + voucher.examFee + voucher.miscCharges + voucher.arrears;
-  const totalAfterDueDate = totalWithinDueDate + voucher.lateFee;
+    (voucher.tuition_fee || 3000) +
+    (voucher.admission_fee || 0) +
+    (voucher.exam_fee || 400) +
+    (voucher.misc_charges || 400) +
+    (voucher.arrears || 0);
+
+  const totalAfterDueDate = totalWithinDueDate + (voucher.late_fee || 300);
+  const isPaid = voucher.status === 'paid';
 
   const copies = [
     {
@@ -93,7 +95,7 @@ export function PrintableChallan({ voucherId }: PrintableChallanProps) {
           <div>
             <h2 className="font-bold text-slate-900 text-sm">Pakistani 3-Part Fee Challan</h2>
             <p className="text-xs text-slate-500">
-              Voucher #{voucher.voucherNumber} • Formatted for standard A4 Landscape printing
+              Voucher #{voucher.voucher_number} • Formatted for standard A4 Landscape printing
             </p>
           </div>
         </div>
@@ -134,6 +136,15 @@ export function PrintableChallan({ voucherId }: PrintableChallanProps) {
               {index < 2 && (
                 <div className="hidden md:flex absolute -right-3 top-2 bg-white px-1 text-slate-400 z-10 print:flex">
                   <Scissors className="h-3.5 w-3.5 rotate-90" />
+                </div>
+              )}
+
+              {/* Watermark PAID stamp if paid */}
+              {isPaid && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none select-none opacity-20 sm:opacity-25 rotate-[-20deg] z-10">
+                  <div className="border-4 border-emerald-600 text-emerald-800 font-black text-3xl sm:text-4xl px-4 py-1.5 rounded-lg tracking-widest uppercase">
+                    PAID
+                  </div>
                 </div>
               )}
 
@@ -197,20 +208,20 @@ export function PrintableChallan({ voucherId }: PrintableChallanProps) {
                 {/* 3. Challan Meta Info */}
                 <div className="grid grid-cols-2 gap-x-2 gap-y-1 mb-2 bg-slate-50/50 p-1.5 border border-slate-200 rounded text-[9px]">
                   <div>
-                    <span className="text-slate-500 block text-[7.5px] uppercase">Challan #</span>
-                    <span className="font-mono font-black text-slate-900">{voucher.voucherNumber}</span>
+                    <span className="text-slate-500 block text-[7.5px] uppercase font-bold">Challan #</span>
+                    <span className="font-mono font-black text-slate-900">{voucher.voucher_number}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[7.5px] uppercase">Billing Month</span>
-                    <span className="font-bold text-slate-800">{voucher.billingMonth}</span>
+                    <span className="text-slate-500 block text-[7.5px] uppercase font-bold">Billing Month</span>
+                    <span className="font-bold text-slate-800">{voucher.billing_month}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[7.5px] uppercase">Issue Date</span>
-                    <span className="font-medium">{voucher.issueDate}</span>
+                    <span className="text-slate-500 block text-[7.5px] uppercase font-bold">Issue Date</span>
+                    <span className="font-medium">{voucher.issue_date}</span>
                   </div>
                   <div>
                     <span className="text-rose-600 block text-[7.5px] uppercase font-bold">Due Date</span>
-                    <span className="font-black text-rose-700">{voucher.dueDate}</span>
+                    <span className="font-black text-rose-700">{voucher.due_date}</span>
                   </div>
                 </div>
 
@@ -218,19 +229,19 @@ export function PrintableChallan({ voucherId }: PrintableChallanProps) {
                 <div className="space-y-0.5 mb-2 border border-slate-200 rounded p-1.5 text-[8.5px]">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Student Name:</span>
-                    <span className="font-black text-slate-900">{voucher.studentName}</span>
+                    <span className="font-black text-slate-900">{voucher.student_name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Father's Name:</span>
-                    <span className="font-semibold text-slate-800">{voucher.fatherName}</span>
+                    <span className="font-semibold text-slate-800">{voucher.father_name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Class &amp; Section:</span>
-                    <span className="font-semibold">{voucher.className} ({voucher.section})</span>
+                    <span className="font-semibold">{voucher.class} ({voucher.section})</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Roll # / Admission:</span>
-                    <span className="font-mono font-medium">{voucher.rollNumber} / {voucher.admissionNumber}</span>
+                    <span className="font-mono font-medium">{voucher.roll_number} / {voucher.admission_number}</span>
                   </div>
                 </div>
 
@@ -245,21 +256,21 @@ export function PrintableChallan({ voucherId }: PrintableChallanProps) {
                   <tbody>
                     <tr>
                       <td className="p-1 border border-slate-300 text-slate-700">1. Tuition Fee</td>
-                      <td className="p-1 border border-slate-300 text-right font-medium">{formatCurrency(voucher.tuitionFee)}</td>
+                      <td className="p-1 border border-slate-300 text-right font-medium">{formatCurrency(voucher.tuition_fee)}</td>
                     </tr>
-                    {voucher.admissionFee > 0 && (
+                    {voucher.admission_fee > 0 && (
                       <tr>
                         <td className="p-1 border border-slate-300 text-slate-700">2. Admission Fee</td>
-                        <td className="p-1 border border-slate-300 text-right font-medium">{formatCurrency(voucher.admissionFee)}</td>
+                        <td className="p-1 border border-slate-300 text-right font-medium">{formatCurrency(voucher.admission_fee)}</td>
                       </tr>
                     )}
                     <tr>
                       <td className="p-1 border border-slate-300 text-slate-700">2. Examination Fee</td>
-                      <td className="p-1 border border-slate-300 text-right font-medium">{formatCurrency(voucher.examFee)}</td>
+                      <td className="p-1 border border-slate-300 text-right font-medium">{formatCurrency(voucher.exam_fee)}</td>
                     </tr>
                     <tr>
                       <td className="p-1 border border-slate-300 text-slate-700">3. Annual / Misc Charges</td>
-                      <td className="p-1 border border-slate-300 text-right font-medium">{formatCurrency(voucher.miscCharges)}</td>
+                      <td className="p-1 border border-slate-300 text-right font-medium">{formatCurrency(voucher.misc_charges)}</td>
                     </tr>
                     {voucher.arrears > 0 && (
                       <tr>
@@ -278,9 +289,9 @@ export function PrintableChallan({ voucherId }: PrintableChallanProps) {
 
                     {/* Late Fee */}
                     <tr className="text-rose-700 text-[8px]">
-                      <td className="p-1 border border-slate-300">Late Fee Fine (After {voucher.dueDate})</td>
+                      <td className="p-1 border border-slate-300">Late Fee Fine (After {voucher.due_date})</td>
                       <td className="p-1 border border-slate-300 text-right font-bold">
-                        {formatCurrency(voucher.lateFee)}
+                        {formatCurrency(voucher.late_fee)}
                       </td>
                     </tr>
 
