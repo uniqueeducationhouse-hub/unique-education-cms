@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
   Receipt,
-  DollarSign,
+  Coins,
   PlusCircle,
   Printer,
   CheckCircle2,
@@ -20,38 +20,41 @@ const mockVouchers = [
     id: 'vch-001',
     voucher_number: 'VCH-202611-1001',
     student_name: 'Sophia Martinez',
+    father_name: 'Carlos Martinez',
     roll_number: '1001',
-    class: 'Grade 10-A',
+    class: 'Class 10-A',
     billing_month: 'November 2026',
     due_date: '2026-11-20',
-    base_amount: 240.0,
-    fine_after_due_date: 25.0,
-    paid_amount: 240.0,
+    base_amount: 3800.0,
+    fine_after_due_date: 300.0,
+    paid_amount: 3800.0,
     status: 'paid',
   },
   {
     id: 'vch-002',
     voucher_number: 'VCH-202611-1002',
     student_name: 'Aaliyah Khan',
+    father_name: 'Farhan Khan',
     roll_number: '1002',
-    class: 'Grade 10-A',
+    class: 'Class 10-A',
     billing_month: 'November 2026',
     due_date: '2026-11-20',
-    base_amount: 240.0,
-    fine_after_due_date: 25.0,
+    base_amount: 3800.0,
+    fine_after_due_date: 300.0,
     paid_amount: 0.0,
     status: 'unpaid',
   },
   {
     id: 'vch-003',
     voucher_number: 'VCH-202610-1003',
-    student_name: 'Benjamin Chen',
+    student_name: 'Muhammad Bilal',
+    father_name: 'Tariq Mahmood',
     roll_number: '1003',
-    class: 'Grade 10-A',
+    class: 'Class 10-A',
     billing_month: 'October 2026',
     due_date: '2026-10-20',
-    base_amount: 240.0,
-    fine_after_due_date: 25.0,
+    base_amount: 3800.0,
+    fine_after_due_date: 300.0,
     paid_amount: 0.0,
     status: 'overdue',
   },
@@ -59,14 +62,29 @@ const mockVouchers = [
     id: 'vch-004',
     voucher_number: 'VCH-202611-0914',
     student_name: 'Liam Johnson',
+    father_name: 'David Johnson',
     roll_number: '0914',
-    class: 'Grade 9-B',
+    class: 'Class 9-B',
     billing_month: 'November 2026',
     due_date: '2026-11-20',
-    base_amount: 220.0,
-    fine_after_due_date: 20.0,
-    paid_amount: 220.0,
+    base_amount: 3500.0,
+    fine_after_due_date: 300.0,
+    paid_amount: 3500.0,
     status: 'paid',
+  },
+  {
+    id: 'vch-005',
+    voucher_number: 'VCH-202611-0501',
+    student_name: 'Zainab Fatima',
+    father_name: 'Imran Ashraf',
+    roll_number: '0501',
+    class: 'Class 5-A',
+    billing_month: 'November 2026',
+    due_date: '2026-11-20',
+    base_amount: 2800.0,
+    fine_after_due_date: 250.0,
+    paid_amount: 0.0,
+    status: 'unpaid',
   },
 ];
 
@@ -113,10 +131,10 @@ export default function FeesPage() {
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase">Total Billed</span>
-            <DollarSign className="h-4 w-4 text-indigo-600" />
+            <Coins className="h-4 w-4 text-indigo-600" />
           </div>
-          <p className="text-2xl font-black text-slate-900 mt-2">$940.00</p>
-          <p className="text-xs text-slate-500 mt-1">4 active vouchers this cycle</p>
+          <p className="text-2xl font-black text-slate-900 mt-2">Rs. 17,400</p>
+          <p className="text-xs text-slate-500 mt-1">5 active Pakistani fee vouchers</p>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
@@ -124,8 +142,8 @@ export default function FeesPage() {
             <span className="text-xs font-semibold text-slate-500 uppercase">Collected Revenue</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           </div>
-          <p className="text-2xl font-black text-emerald-700 mt-2">$460.00</p>
-          <p className="text-xs text-slate-500 mt-1">2 vouchers paid</p>
+          <p className="text-2xl font-black text-emerald-700 mt-2">Rs. 7,300</p>
+          <p className="text-xs text-slate-500 mt-1">2 vouchers paid via bank/cash</p>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
@@ -133,8 +151,8 @@ export default function FeesPage() {
             <span className="text-xs font-semibold text-slate-500 uppercase">Outstanding Balance</span>
             <AlertTriangle className="h-4 w-4 text-rose-600" />
           </div>
-          <p className="text-2xl font-black text-rose-700 mt-2">$480.00</p>
-          <p className="text-xs text-slate-500 mt-1">1 overdue with fine</p>
+          <p className="text-2xl font-black text-rose-700 mt-2">Rs. 10,100</p>
+          <p className="text-xs text-slate-500 mt-1">3 unpaid / overdue with fine</p>
         </div>
       </div>
 

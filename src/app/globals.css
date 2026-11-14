@@ -28,26 +28,20 @@ body {
   body {
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 11pt;
+    font-size: 10pt;
     margin: 0;
     padding: 0;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  .print-page {
-    width: 100%;
-    margin: 0 auto;
-    page-break-after: always;
-  }
-
   /* 3-Part Bank Challan: Landscape Tri-Fold */
-  .challan-sheet {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 12px !important;
+  .challan-container {
     width: 100% !important;
-    height: auto !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
   }
 
   /* Official Student Report Card: Portrait A4 */
@@ -55,9 +49,13 @@ body {
     width: 100% !important;
     max-width: 210mm !important;
     min-height: 297mm !important;
-    padding: 12mm !important;
+    padding: 10mm !important;
     margin: auto !important;
     border: none !important;
     box-shadow: none !important;
   }
+}
+
+@page {
+  margin: 6mm;
 }
