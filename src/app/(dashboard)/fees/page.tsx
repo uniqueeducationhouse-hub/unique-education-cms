@@ -153,20 +153,20 @@ function FeesContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full min-w-0">
+        <div className="min-w-0 flex-1">
           <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wider">
             Module 3: Fee Tracking &amp; Collections
           </span>
-          <h1 className="text-2xl font-bold text-slate-900 mt-1">Fee Management &amp; Cash Collections</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mt-1 break-words">Fee Management &amp; Cash Collections</h1>
+          <p className="text-xs sm:text-sm text-slate-500">
             Collect fees by hand at the counter, print 2-copy cash slips, send WhatsApp receipts, and print 3-part bank challans.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
           <button
             type="button"
             onClick={() => setIsDateModalOpen(true)}
@@ -322,18 +322,18 @@ function FeesContent() {
       </div>
 
       {/* Vouchers Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden w-full min-w-0">
         <div className="w-full overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
+          <table className="w-full text-left text-xs text-slate-700 border-collapse">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="px-4 py-3.5">Challan #</th>
-                <th className="px-4 py-3.5">Student &amp; Father</th>
-                <th className="px-3 py-3.5">Class / Roll</th>
-                <th className="px-3 py-3.5">Month &amp; Due Date</th>
-                <th className="px-3 py-3.5">Amount (PKR)</th>
-                <th className="px-3 py-3.5">Status</th>
-                <th className="px-4 py-3.5 text-right">Actions &amp; Receipts</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">Challan #</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">Student &amp; Father</th>
+                <th className="px-3 py-3.5 whitespace-nowrap">Class / Roll</th>
+                <th className="px-3 py-3.5 whitespace-nowrap">Month &amp; Due Date</th>
+                <th className="px-3 py-3.5 whitespace-nowrap">Amount (PKR)</th>
+                <th className="px-3 py-3.5 whitespace-nowrap">Status</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap">Actions &amp; Receipts</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -342,55 +342,55 @@ function FeesContent() {
 
                 return (
                   <tr key={v.id} className="hover:bg-slate-50/80 transition">
-                    <td className="px-4 py-3.5 font-mono font-bold text-slate-900">
+                    <td className="px-4 py-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">
                       {v.voucher_number}
                     </td>
 
-                    <td className="px-4 py-3.5">
-                      <p className="font-bold text-slate-900">{v.student_name}</p>
-                      <p className="text-[11px] text-slate-500">S/O, D/O: {v.father_name}</p>
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      <p className="font-bold text-slate-900 whitespace-nowrap">{v.student_name}</p>
+                      <p className="text-[11px] text-slate-500 whitespace-nowrap">S/O, D/O: {v.father_name}</p>
                     </td>
 
-                    <td className="px-3 py-3.5 text-slate-700">
-                      <span className="font-semibold block">{v.class}</span>
-                      <span className="text-[11px] text-slate-400">Roll: {v.roll_number}</span>
+                    <td className="px-3 py-3.5 text-slate-700 whitespace-nowrap">
+                      <span className="font-semibold block whitespace-nowrap">{v.class}</span>
+                      <span className="text-[11px] text-slate-400 whitespace-nowrap">Roll: {v.roll_number}</span>
                     </td>
 
-                    <td className="px-3 py-3.5 text-slate-600 text-[11px]">
-                      <span className="block font-medium text-slate-800">{v.billing_month}</span>
-                      <span className={v.status === 'overdue' ? 'text-rose-600 font-bold' : 'text-slate-500'}>
+                    <td className="px-3 py-3.5 text-slate-600 text-[11px] whitespace-nowrap">
+                      <span className="block font-medium text-slate-800 whitespace-nowrap">{v.billing_month}</span>
+                      <span className={`whitespace-nowrap ${v.status === 'overdue' ? 'text-rose-600 font-bold' : 'text-slate-500'}`}>
                         Due: {v.due_date}
                       </span>
                     </td>
 
-                    <td className="px-3 py-3.5 font-mono font-bold text-slate-900">
+                    <td className="px-3 py-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">
                       {formatCurrency(v.base_amount)}
                     </td>
 
-                    <td className="px-3 py-3.5">
+                    <td className="px-3 py-3.5 whitespace-nowrap">
                       {v.status === 'paid' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 whitespace-nowrap">
+                          <CheckCircle2 className="h-3 w-3 text-emerald-600 shrink-0" />
                           PAID
                         </span>
                       )}
                       {v.status === 'unpaid' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                          <Clock className="h-3 w-3 text-amber-600" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                          <Clock className="h-3 w-3 text-amber-600 shrink-0" />
                           PENDING
                         </span>
                       )}
                       {v.status === 'overdue' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200">
-                          <AlertTriangle className="h-3 w-3 text-rose-600" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200 whitespace-nowrap">
+                          <AlertTriangle className="h-3 w-3 text-rose-600 shrink-0" />
                           OVERDUE
                         </span>
                       )}
                     </td>
 
                     {/* Actions Column */}
-                    <td className="px-4 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                    <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                         {/* If NOT paid: Show "Mark as Paid" button */}
                         {!isPaid ? (
                           <button

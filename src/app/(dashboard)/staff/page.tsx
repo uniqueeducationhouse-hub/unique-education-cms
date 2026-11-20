@@ -186,7 +186,7 @@ export default function StaffPayrollPage() {
     .reduce((sum, v) => sum + (v.net_salary || 0), 0);
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="w-full min-w-0 space-y-6">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 animate-fade-in">
@@ -196,28 +196,28 @@ export default function StaffPayrollPage() {
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-xs border border-slate-200">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 uppercase tracking-wider">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-xs border border-slate-200 w-full min-w-0">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 uppercase tracking-wider shrink-0">
               HR &amp; Payroll Module
             </span>
             <span className="text-xs text-slate-500 font-medium">PKR Payroll &amp; Staff Management</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900 mt-1">Staff Directory &amp; Salary Disbursal</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-1 break-words">Staff Directory &amp; Salary Disbursal</h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Manage teachers, clerks, peons, guards, drivers, calculate monthly allowances/deductions, and print 2-copy salary slips.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
           <button
             onClick={() => {
               setEditingStaff(null);
               setIsAddStaffOpen(true);
             }}
-            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-md shadow-indigo-200 transition-colors"
+            className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-md shadow-indigo-200 transition-colors whitespace-nowrap"
           >
-            <UserPlus className="h-4 w-4" /> Add New Staff Member
+            <UserPlus className="h-4 w-4 shrink-0" /> Add New Staff Member
           </button>
         </div>
       </div>
@@ -333,48 +333,48 @@ export default function StaffPayrollPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                  <th className="py-3.5 px-6">Staff Member &amp; ID</th>
-                  <th className="py-3.5 px-6">Role / Category</th>
-                  <th className="py-3.5 px-6">Phone &amp; Email</th>
-                  <th className="py-3.5 px-6">Qualification</th>
-                  <th className="py-3.5 px-6">Basic Salary</th>
-                  <th className="py-3.5 px-6">Status</th>
-                  <th className="py-3.5 px-6 text-right">Actions</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Staff Member &amp; ID</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Role / Category</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Phone &amp; Email</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Qualification</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Basic Salary</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Status</th>
+                  <th className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                 {filteredStaff.map((staff) => (
                   <tr key={staff.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">
                           {staff.first_name[0]}
                           {staff.last_name[0]}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900">
+                          <p className="font-bold text-slate-900 whitespace-nowrap">
                             {staff.first_name} {staff.last_name}
                           </p>
-                          <p className="text-[11px] text-slate-500 font-mono">{staff.employee_id}</p>
+                          <p className="text-[11px] text-slate-500 font-mono whitespace-nowrap">{staff.employee_id}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
+                      <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-800 border border-slate-200 whitespace-nowrap">
                         {staff.category}
                       </span>
                     </td>
-                    <td className="py-4 px-6">
-                      <p className="font-semibold text-slate-800">{staff.phone}</p>
-                      <p className="text-[11px] text-slate-500">{staff.email || 'N/A'}</p>
+                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
+                      <p className="font-semibold text-slate-800 whitespace-nowrap">{staff.phone}</p>
+                      <p className="text-[11px] text-slate-500 whitespace-nowrap">{staff.email || 'N/A'}</p>
                     </td>
-                    <td className="py-4 px-6 text-slate-600">{staff.qualification}</td>
-                    <td className="py-4 px-6 font-bold text-emerald-700">
+                    <td className="py-4 px-4 sm:px-6 text-slate-600 whitespace-nowrap">{staff.qualification}</td>
+                    <td className="py-4 px-4 sm:px-6 font-bold text-emerald-700 whitespace-nowrap">
                       {formatCurrency(staff.basic_salary)}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
                           staff.status === 'active'
                             ? 'bg-emerald-100 text-emerald-800'
                             : staff.status === 'on_leave'
@@ -385,10 +385,10 @@ export default function StaffPayrollPage() {
                         {staff.status.toUpperCase()}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-right space-x-2">
+                    <td className="py-4 px-4 sm:px-6 text-right whitespace-nowrap space-x-2">
                       <button
                         onClick={() => setProcessingStaff(staff)}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1"
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap"
                         title="Process Monthly Salary Slip"
                       >
                         <Receipt className="h-3.5 w-3.5" /> Payroll
@@ -431,45 +431,45 @@ export default function StaffPayrollPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                  <th className="py-3.5 px-6">Slip # &amp; Month</th>
-                  <th className="py-3.5 px-6">Staff Name &amp; ID</th>
-                  <th className="py-3.5 px-6">Category</th>
-                  <th className="py-3.5 px-6">Gross Salary</th>
-                  <th className="py-3.5 px-6">Deductions</th>
-                  <th className="py-3.5 px-6">Net Payable</th>
-                  <th className="py-3.5 px-6">Status</th>
-                  <th className="py-3.5 px-6 text-right">Actions</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Slip # &amp; Month</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Staff Name &amp; ID</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Category</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Gross Salary</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Deductions</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Net Payable</th>
+                  <th className="py-3.5 px-4 sm:px-6 whitespace-nowrap">Status</th>
+                  <th className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                 {filteredPayroll.map((voucher) => (
                   <tr key={voucher.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 px-6">
-                      <p className="font-mono font-bold text-indigo-700">{voucher.slip_number}</p>
-                      <p className="text-[11px] text-slate-500">{voucher.billing_month}</p>
+                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
+                      <p className="font-mono font-bold text-indigo-700 whitespace-nowrap">{voucher.slip_number}</p>
+                      <p className="text-[11px] text-slate-500 whitespace-nowrap">{voucher.billing_month}</p>
                     </td>
-                    <td className="py-4 px-6">
-                      <p className="font-bold text-slate-900">{voucher.staff_name}</p>
-                      <p className="text-[11px] text-slate-500 font-mono">{voucher.employee_id}</p>
+                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
+                      <p className="font-bold text-slate-900 whitespace-nowrap">{voucher.staff_name}</p>
+                      <p className="text-[11px] text-slate-500 font-mono whitespace-nowrap">{voucher.employee_id}</p>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="px-2 py-0.5 rounded text-[11px] bg-slate-100 font-medium text-slate-800">
+                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
+                      <span className="px-2 py-0.5 rounded text-[11px] bg-slate-100 font-medium text-slate-800 whitespace-nowrap">
                         {voucher.category}
                       </span>
                     </td>
-                    <td className="py-4 px-6 font-semibold text-slate-800">
+                    <td className="py-4 px-4 sm:px-6 font-semibold text-slate-800 whitespace-nowrap">
                       {formatCurrency(voucher.gross_salary)}
                     </td>
-                    <td className="py-4 px-6 font-semibold text-red-600">
+                    <td className="py-4 px-4 sm:px-6 font-semibold text-red-600 whitespace-nowrap">
                       -{formatCurrency(voucher.total_deductions)}
                     </td>
-                    <td className="py-4 px-6 font-bold text-emerald-700 text-sm">
+                    <td className="py-4 px-4 sm:px-6 font-bold text-emerald-700 text-sm whitespace-nowrap">
                       {formatCurrency(voucher.net_salary)}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
                       <button
                         onClick={() => handleTogglePaid(voucher.id)}
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-transform hover:scale-105 ${
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-transform hover:scale-105 whitespace-nowrap ${
                           voucher.payment_status === 'paid'
                             ? 'bg-emerald-100 text-emerald-800'
                             : 'bg-amber-100 text-amber-800'
@@ -481,13 +481,13 @@ export default function StaffPayrollPage() {
                           : 'PENDING UNPAID'}
                       </button>
                     </td>
-                    <td className="py-4 px-6 text-right space-x-2">
+                    <td className="py-4 px-4 sm:px-6 text-right whitespace-nowrap space-x-2">
                       <button
                         onClick={() => setViewingVoucher(voucher)}
-                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1"
+                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap"
                         title="Print 2-Copy Salary Slip"
                       >
-                        <Printer className="h-3.5 w-3.5" /> Print Slip
+                        <Printer className="h-3.5 w-3.5 shrink-0" /> Print Slip
                       </button>
                     </td>
                   </tr>

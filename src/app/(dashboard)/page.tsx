@@ -61,11 +61,11 @@ async function DashboardContent() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
+      <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600 rounded-2xl p-4 sm:p-6 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 w-full min-w-0">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-medium backdrop-blur-xs">
               Academic Session 2026-2027
             </span>
@@ -74,21 +74,21 @@ async function DashboardContent() {
               Connected to Supabase
             </span>
           </div>
-          <h2 className="text-2xl font-bold">Unique Education Management Portal</h2>
-          <p className="text-indigo-100 text-sm mt-1 max-w-xl">
+          <h2 className="text-xl sm:text-2xl font-bold break-words">Unique Education Management Portal</h2>
+          <p className="text-indigo-100 text-xs sm:text-sm mt-1 max-w-xl">
             Unique Education, Pakistan Campus • Integrated Next.js App Router & Supabase cloud backend covering Student & Teacher Admissions, Daily Attendance, Billing Vouchers, and Exam Marks.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto shrink-0">
           <Link
             href="/admissions"
-            className="px-4 py-2 bg-white text-indigo-700 font-semibold text-xs rounded-lg shadow hover:bg-indigo-50 transition"
+            className="flex-1 sm:flex-initial text-center px-4 py-2 bg-white text-indigo-700 font-semibold text-xs rounded-lg shadow hover:bg-indigo-50 transition whitespace-nowrap"
           >
             + Enroll Student
           </Link>
           <Link
             href="/attendance"
-            className="px-4 py-2 bg-indigo-900/60 text-white font-semibold text-xs rounded-lg border border-indigo-400/30 hover:bg-indigo-900/80 transition"
+            className="flex-1 sm:flex-initial text-center px-4 py-2 bg-indigo-900/60 text-white font-semibold text-xs rounded-lg border border-indigo-400/30 hover:bg-indigo-900/80 transition whitespace-nowrap"
           >
             Attendance Roster
           </Link>
@@ -96,28 +96,28 @@ async function DashboardContent() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full min-w-0">
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
             <Link
               key={kpi.title}
               href={kpi.href}
-              className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between"
+              className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-w-0"
             >
               <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide truncate">
                     {kpi.module}
                   </span>
-                  <div className={`h-8 w-8 rounded-lg ${kpi.color} text-white flex items-center justify-center shadow-xs`}>
+                  <div className={`h-8 w-8 rounded-lg ${kpi.color} text-white flex items-center justify-center shadow-xs shrink-0`}>
                     <Icon className="h-4 w-4" />
                   </div>
                 </div>
-                <h3 className="text-2xl font-extrabold text-slate-900 mt-2">{kpi.value}</h3>
-                <p className="text-xs text-slate-600 font-medium">{kpi.title}</p>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2 truncate">{kpi.value}</h3>
+                <p className="text-xs text-slate-600 font-medium truncate">{kpi.title}</p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 gap-2">
                 <span className="truncate">{kpi.change}</span>
                 <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />
               </div>
@@ -127,20 +127,20 @@ async function DashboardContent() {
       </div>
 
       {/* Core Modules Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-            <div>
-              <h3 className="font-bold text-slate-900 text-base">Core Modules Status</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full min-w-0">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5 shadow-xs min-w-0">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100">
+            <div className="min-w-0">
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate">Core Modules Status</h3>
               <p className="text-xs text-slate-500">Active subsystems connected to Supabase PostgreSQL</p>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200 flex items-center gap-1.5">
+            <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200 flex items-center gap-1.5 shrink-0">
               <Database className="h-3.5 w-3.5 text-emerald-600" />
               Supabase Live
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <Link
               href="/admissions"
               className="p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition group"

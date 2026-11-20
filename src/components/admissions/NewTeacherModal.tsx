@@ -56,18 +56,18 @@ export function NewTeacherModal({ isOpen, onClose, onSuccess }: NewTeacherModalP
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl overflow-hidden my-4 sm:my-8 min-w-0">
         {/* Header */}
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5 text-indigo-400" />
+            <GraduationCap className="h-5 w-5 text-indigo-400 shrink-0" />
             <h3 className="font-bold text-base">Onboard Faculty Member</h3>
           </div>
           <button
             onClick={onClose}
             type="button"
-            className="text-slate-400 hover:text-white p-1 rounded-lg transition"
+            className="text-slate-400 hover:text-white p-1 rounded-lg transition shrink-0"
           >
             <X className="h-5 w-5" />
           </button>
@@ -75,20 +75,20 @@ export function NewTeacherModal({ isOpen, onClose, onSuccess }: NewTeacherModalP
 
         {/* Alerts */}
         {errorMsg && (
-          <div className="mx-6 mt-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+          <div className="mx-4 sm:mx-6 mt-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
             <span>{errorMsg}</span>
           </div>
         )}
         {successMsg && (
-          <div className="mx-6 mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+          <div className="mx-4 sm:mx-6 mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
             <span>{successMsg}</span>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">First Name *</label>
@@ -196,22 +196,22 @@ export function NewTeacherModal({ isOpen, onClose, onSuccess }: NewTeacherModalP
           </div>
 
           {/* Footer */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-slate-100 flex flex-wrap sm:flex-nowrap items-center justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition"
+              className="w-full sm:w-auto px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow flex items-center gap-2 transition disabled:opacity-50"
+              className="w-full sm:w-auto px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow flex items-center justify-center gap-2 transition disabled:opacity-50 text-center"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                   <span>Onboarding...</span>
                 </>
               ) : (

@@ -363,20 +363,20 @@ export default function ExamsPage() {
   const classTotalMaxMarks = activeSubjects.reduce((acc, sub) => acc + sub.totalMarks, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full min-w-0">
+        <div className="min-w-0 flex-1">
           <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">
             Module 4: Exam Marks, Curriculum &amp; Report Cards
           </span>
-          <h1 className="text-2xl font-bold text-slate-900 mt-1">Examinations &amp; Academic Setup</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mt-1 break-words">Examinations &amp; Academic Setup</h1>
+          <p className="text-xs sm:text-sm text-slate-500">
             Create new examination schedules, configure Pakistani curriculum subjects, and record grade matrix.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
           {activeTab === 'matrix' && (
             <button
               type="button"
@@ -542,26 +542,26 @@ export default function ExamsPage() {
             </button>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden w-full min-w-0">
             <div className="w-full overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700">
+              <table className="w-full text-left text-xs text-slate-700 border-collapse">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
                   <tr>
-                    <th className="px-3 py-3">Roll</th>
-                    <th className="px-3 py-3">Student Name</th>
+                    <th className="px-3 py-3 whitespace-nowrap">Roll</th>
+                    <th className="px-3 py-3 whitespace-nowrap">Student Name</th>
                     {activeSubjects.map((sub) => (
                       <th key={sub.id} className="px-2 py-3 text-center whitespace-nowrap">
-                        <span className="block text-slate-800 font-bold">{sub.name}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">({sub.totalMarks})</span>
+                        <span className="block text-slate-800 font-bold whitespace-nowrap">{sub.name}</span>
+                        <span className="text-[10px] text-slate-400 font-mono whitespace-nowrap">({sub.totalMarks})</span>
                       </th>
                     ))}
-                    <th className="px-3 py-3 text-center font-bold text-slate-900">
+                    <th className="px-3 py-3 text-center font-bold text-slate-900 whitespace-nowrap">
                       Total ({classTotalMaxMarks})
                     </th>
-                    <th className="px-2 py-3 text-center font-bold text-indigo-600">%</th>
-                    <th className="px-2 py-3 text-center font-bold">Grade</th>
-                    <th className="px-2 py-3 text-center font-bold">GPA</th>
-                    <th className="px-4 py-3 text-right">Report Card</th>
+                    <th className="px-2 py-3 text-center font-bold text-indigo-600 whitespace-nowrap">%</th>
+                    <th className="px-2 py-3 text-center font-bold whitespace-nowrap">Grade</th>
+                    <th className="px-2 py-3 text-center font-bold whitespace-nowrap">GPA</th>
+                    <th className="px-4 py-3 text-right whitespace-nowrap">Report Card</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
@@ -579,7 +579,7 @@ export default function ExamsPage() {
 
                     return (
                       <tr key={s.studentId} className="hover:bg-slate-50/80 transition">
-                        <td className="px-3 py-3 font-bold text-slate-900">{s.rollNo}</td>
+                        <td className="px-3 py-3 font-bold text-slate-900 whitespace-nowrap">{s.rollNo}</td>
                         <td className="px-3 py-3 font-sans font-medium text-slate-900 whitespace-nowrap">
                           {s.name}
                         </td>
@@ -589,7 +589,7 @@ export default function ExamsPage() {
                           const isFailing = currentVal < sub.passingMarks;
 
                           return (
-                            <td key={sub.id} className="px-1.5 py-2.5 text-center">
+                            <td key={sub.id} className="px-1.5 py-2.5 text-center whitespace-nowrap">
                               <input
                                 type="number"
                                 min={0}
@@ -608,15 +608,15 @@ export default function ExamsPage() {
                           );
                         })}
 
-                        <td className="px-3 py-3 text-center font-bold text-slate-900">
+                        <td className="px-3 py-3 text-center font-bold text-slate-900 whitespace-nowrap">
                           {totalObtained}
                         </td>
-                        <td className="px-2 py-3 text-center font-black text-indigo-700">
+                        <td className="px-2 py-3 text-center font-black text-indigo-700 whitespace-nowrap">
                           {percentage}%
                         </td>
-                        <td className="px-2 py-3 text-center font-sans">
+                        <td className="px-2 py-3 text-center font-sans whitespace-nowrap">
                           <span
-                            className={`px-2 py-0.5 rounded font-black text-xs ${
+                            className={`px-2 py-0.5 rounded font-black text-xs whitespace-nowrap ${
                               grade === 'A+' || grade === 'A'
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : grade === 'B' || grade === 'C'
@@ -629,16 +629,16 @@ export default function ExamsPage() {
                             {grade}
                           </span>
                         </td>
-                        <td className="px-2 py-3 text-center font-bold text-slate-700">
+                        <td className="px-2 py-3 text-center font-bold text-slate-700 whitespace-nowrap">
                           {gpa.toFixed(1)}
                         </td>
-                        <td className="px-4 py-3 text-right font-sans">
+                        <td className="px-4 py-3 text-right font-sans whitespace-nowrap">
                           <Link
                             href={`/exams/report-card/${s.studentId}`}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-md font-semibold text-xs transition"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-md font-semibold text-xs transition whitespace-nowrap"
                           >
-                            <Printer className="h-3 w-3" />
-                            Report Card
+                            <Printer className="h-3 w-3 shrink-0" />
+                            <span>Report Card</span>
                           </Link>
                         </td>
                       </tr>

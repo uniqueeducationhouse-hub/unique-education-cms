@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { SchoolSettingsProvider } from '@/lib/school-settings';
+import { SidebarProvider } from '@/components/layout/SidebarContext';
 
 export default function DashboardLayout({
   children,
@@ -10,17 +11,21 @@ export default function DashboardLayout({
 }) {
   return (
     <SchoolSettingsProvider>
-      <div className="min-h-screen flex bg-slate-50">
-        <Suspense fallback={<aside className="w-64 bg-slate-900 min-h-screen no-print" />}>
-          <Sidebar />
-        </Suspense>
-        <div className="flex-1 flex flex-col min-w-0">
-          <Header />
-          <main className="flex-1 p-6 overflow-y-auto">
-            {children}
-          </main>
+      <SidebarProvider>
+        <div className="min-h-screen flex bg-slate-50 relative overflow-x-hidden w-full">
+          <Suspense fallback={<aside className="hidden lg:block w-64 bg-slate-900 min-h-screen no-print shrink-0" />}>
+            <Sidebar />
+          </Suspense>
+          <div className="w-full min-w-0 flex-1 flex flex-col overflow-x-hidden">
+            <Header />
+            <main className="w-full min-w-0 flex-1 overflow-x-hidden p-3 sm:p-6 overflow-y-auto">
+              <div className="w-full min-w-0">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
+      </SidebarProvider>
     </SchoolSettingsProvider>
   );
 }

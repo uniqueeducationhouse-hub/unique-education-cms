@@ -59,3 +59,12 @@ body {
 @page {
   margin: 6mm;
 }
+
+/* Hide scrollbar for clean horizontal tabs/scrollers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

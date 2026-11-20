@@ -66,9 +66,9 @@ export default function AttendancePage() {
     : '0';
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full min-w-0">
         <div>
           <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
             Module 2: Daily Attendance
@@ -164,28 +164,28 @@ export default function AttendancePage() {
       </div>
 
       {/* Roster Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden w-full min-w-0">
         <div className="w-full overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
+          <table className="w-full text-left text-xs text-slate-700 border-collapse">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="px-5 py-3.5">Roll No</th>
-                <th className="px-5 py-3.5">Student Name</th>
-                <th className="px-5 py-3.5 text-center">Status Toggle</th>
-                <th className="px-5 py-3.5">Remarks / Reason</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Roll No</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Student Name</th>
+                <th className="px-5 py-3.5 whitespace-nowrap text-center">Status Toggle</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Remarks / Reason</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {roster.map((student) => (
                 <tr key={student.id} className="hover:bg-slate-50/70 transition">
-                  <td className="px-5 py-3.5 font-mono font-semibold text-slate-900">
+                  <td className="px-5 py-3.5 font-mono font-semibold text-slate-900 whitespace-nowrap">
                     {student.roll_number}
                   </td>
-                  <td className="px-5 py-3.5 font-medium text-slate-900 text-sm">
+                  <td className="px-5 py-3.5 font-medium text-slate-900 text-sm whitespace-nowrap">
                     {student.name}
                   </td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center justify-center gap-1.5">
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => setStatus(student.id, 'present')}
@@ -232,7 +232,7 @@ export default function AttendancePage() {
                       </button>
                     </div>
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-5 py-3.5 whitespace-nowrap min-w-[200px]">
                     <input
                       type="text"
                       placeholder="Optional notes or excuse reason..."
