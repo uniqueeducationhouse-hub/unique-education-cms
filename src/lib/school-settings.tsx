@@ -27,7 +27,7 @@ export const DEFAULT_SCHOOL_SETTINGS: SchoolSettings = {
   accountTitle: 'Unique Education Fee Collection A/C',
   accountNumber: 'PK36MEZN0001234567890101',
   branchName: 'Gulberg III Branch, Lahore',
-  logoUrl: null,
+  logoUrl: '/logo.png',
   principalName: 'Prof. Muhammad Tariq Khan',
 };
 
@@ -77,7 +77,7 @@ export function SchoolSettingsProvider({ children }: { children: React.ReactNode
             accountTitle: data.account_title || DEFAULT_SCHOOL_SETTINGS.accountTitle,
             accountNumber: data.account_number || DEFAULT_SCHOOL_SETTINGS.accountNumber,
             branchName: data.branch_name || DEFAULT_SCHOOL_SETTINGS.branchName,
-            logoUrl: data.logo_url || null,
+            logoUrl: data.logo_url || '/logo.png',
             principalName: data.principal_name || DEFAULT_SCHOOL_SETTINGS.principalName,
           };
           setSettings(loaded);

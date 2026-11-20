@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { GraduationCap, Lock, Mail, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -56,8 +56,13 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         {/* Branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-200 mb-4 animate-in fade-in zoom-in duration-500">
-            <GraduationCap className="h-10 w-10" />
+          <div className="inline-flex items-center justify-center h-20 w-20 rounded-2xl bg-white shadow-xl shadow-indigo-100 border border-slate-100 mb-4 overflow-hidden p-2 animate-in fade-in zoom-in duration-500">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="Unique Education Logo"
+              className="h-full w-full object-contain rounded-xl"
+            />
           </div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Unique Education CMS</h1>
           <p className="text-slate-500 font-medium mt-2">Institutional Staff Login Portal</p>
