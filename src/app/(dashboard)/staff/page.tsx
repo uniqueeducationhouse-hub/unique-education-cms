@@ -329,7 +329,7 @@ export default function StaffPayrollPage() {
 
         {/* TAB 1: STAFF DIRECTORY */}
         {activeTab === 'directory' && (
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
@@ -427,7 +427,7 @@ export default function StaffPayrollPage() {
 
         {/* TAB 2: MONTHLY SALARY SLIPS */}
         {activeTab === 'payroll' && (
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
